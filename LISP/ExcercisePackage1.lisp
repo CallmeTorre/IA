@@ -6,6 +6,12 @@
 ;1.b) El numero de segundos que tiene el año bisiesto 2004
 (* 366 24 3600) ;31622400
 
+;1.c) Si el valor numerico asociado a la variable x es diferente de cero y además menor o igual que el valor asociado a la variable y.
+(defvar x 10) ;x=10
+(defvar y 20) ;y=20
+
+;1.d) Una lista con las dos soluciones reales de la ecuación
+(complex x y) ;#C(10 20)
 
 ;2.a) 2(4) + (6 - 8)
 (+ (* 2 4)(- 6 8)) ;6
