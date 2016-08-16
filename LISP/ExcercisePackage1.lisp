@@ -10,8 +10,9 @@
 (defvar x 10) ;x=10
 (defvar y 20) ;y=20
 
-;1.d) Una lista con las dos soluciones reales de la ecuación
-(complex x y) ;#C(10 20)
+;1.d) Una lista con las dos soluciones reales de la ecuación 2x^2+7x+5=0
+(/(+ 7(sqrt (-(expt 7 2)(* 4 2 5))))(* 2 2)) ;2.5
+(/(- 7(sqrt (-(expt 7 2)(* 4 2 5))))(* 2 2)) ;1.0
 
 ;2.a) 2(4) + (6 - 8)
 (+ (* 2 4)(- 6 8)) ;6
