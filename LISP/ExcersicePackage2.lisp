@@ -36,3 +36,37 @@
        	     	return (list i contador))))
 
 (Primer-impar '(2 3 4 5)) ; (3 1)
+
+;5)
+(defun Ultimo-impar (lista)
+       (let* ((incidencias 0)
+       	        (ultimo 0)
+		(contador 0))
+       (dolist (i (reverse lista))
+       	       (if (>= i 0) (setq contador(+ contador 1)))
+	       (if (and (>= i 0) (equal contador 1)) (setq ultimo i)))
+       (dolist (x lista)
+       	       (if (equal x ultimo) (setq incidencias(+ incidencias 1))))
+       (list ultimo incidencias)))
+
+(ultimo-impar '(1 2 3 8 8 8 -3)) ; (8 3)
+
+;6)
+(defun Conteo (lista)
+       (let* ((elem_num 0)
+       	       (sublistas 0))
+       (dolist (i lista)
+       	       (if (numberp i) (setq elem_num(+ elem_num 1)))
+	       (if (listp i) (setq sublistas(+ sublistas 1))))
+	       (list elem_num sublistas)))
+
+(Conteo '(2 a b c (a d) 1 (a b c 2) 3)) ; (3 2)
+
+;7)
+;8)
+(defun Diagonal (lista)
+    (loop for i from 0
+    	    for elem in lista
+	    collect(nth i elem)))
+
+(diagonal '((a b c) (a b c) (a b c))) ;(A B C)
