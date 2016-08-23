@@ -70,3 +70,29 @@
 	    collect(nth i elem)))
 
 (diagonal '((a b c) (a b c) (a b c))) ;(A B C)
+
+;9)
+(defun Analiza (lista)
+       (let ((lista_nueva '()))
+       	(dolist (i lista (reverse lista_nueva))
+		(cond ((null i) (setq lista_nueva(cons 'N lista_nueva)))
+		      ((listp i) (setq lista_nueva(cons 'L lista_nueva)))
+			    (T (setq lista_nueva(cons 'A lista_nueva)))))))
+
+(Analiza '(a () 2 3 (a b c))) ; (A N A A L)
+
+;10)
+(defun Suma-numerica (lista)
+       (loop for i in lista
+       	     if(numberp i)
+	            sum i))
+
+(SUMA-numerica '(1 2 3 a b 2 c 3)) ; 11
+
+;11)
+(defun Filtra-múltiplos (lista elem)
+      (loop for i in lista
+      	    if(not(equal 0 (mod i elem)))
+	           collect i))
+
+(filtra-múltiplos '(1 2 3 4 5 6) 2) ; (1 3 5)
