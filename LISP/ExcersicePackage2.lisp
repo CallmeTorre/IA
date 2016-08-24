@@ -69,6 +69,7 @@
         (t (append (Aplana (car l)) (Aplana (cdr l))))))
 
 (Aplana '((a b) c d ((e f g)) h)) ; (A B C D E F G H)
+
 ;8)
 (defun Diagonal (lista)
     (loop for i from 0
@@ -96,6 +97,20 @@
 (SUMA-numerica '(1 2 3 a b 2 c 3)) ; 11
 
 ;11)
+(defun FiltraVocales (l)
+  (cond ((null l) nil)
+        ((atom (car l)) (if (or (equal 'a (car l))
+				(equal 'e (car l))
+				(equal 'i (car l))
+				(equal 'o (car l))
+				(equal 'u (car l)))
+			    (FiltraVocales (cdr l))
+			    (cons (car l) (Filtravocales (cdr l)))))
+        (t (append (FiltraVocales (car l)) (FiltraVocales (cdr l))))))
+
+(FiltraVocales '((A E I) 1 2 a u u)) ;(1 2)
+
+;12)
 (defun Filtra-múltiplos (lista elem)
       (loop for i in lista
       	    if(not(equal 0 (mod i elem)))
@@ -103,8 +118,47 @@
 
 (filtra-múltiplos '(1 2 3 4 5 6) 2) ; (1 3 5)
 
+;13)
+(defun CeldasAux (l n)
+  (cond ((null l) n)
+	((atom (car l)) (Celdas(cdr l) (+ n 1)))
+	(t (+ (Celdas (car l) (+ n 0)) (Celdas (cdr l) (+ n 1))))))
+
+(defun Celdas (lista)
+  (Celdas lista 0))
+
+(Celdas '(((1)) 2 3 4 5 )) ; 7
+
 ;14)
 (defun Implica (&rest argumentos)
              (every #'identity argumentos))
 
 (Implica T T) ;=> T
+
+;15)
+(defun Multiplicar (a-matrix  b-matrix)
+  (let ((result (make-array
+          (list (nth 0 (array-dimensions a-matrix))
+                (nth 1 (array-dimensions b-matrix)))))
+	(m (nth 0 (array-dimensions a-matrix)))
+        (n (nth 1 (array-dimensions b-matrix)))
+        (common (nth 0 (array-dimensions b-matrix))))
+    (dotimes (i m result)
+      (dotimes (j n)
+        (setf (aref result i j) 0.0)
+        (dotimes (k common)
+          (incf (aref result i j)
+                (* (aref a-matrix i k) (aref b-matrix k j))))))))
+
+(defun Mult  (&key fm sm)
+  (if (not (eq (length (first fm)) (length sm)))
+      (return-from mm nil))
+      (let* (( a (make-array (list (length fm)
+                    (length (first fm)))
+			     :initial-contents fm))
+	     ( b (make-array (list (length sm)
+                    (length (first sm)))
+			     :initial-contents sm)))
+	  (Multiplicar a b)))
+
+(Mult :fm '((1 2 3)(1 2 3)(1 2 3)) :sm '((1 2)(1 2)(1 2))) ; #2A((6.0 12.0) (6.0 12.0) (6.0 12.0))
