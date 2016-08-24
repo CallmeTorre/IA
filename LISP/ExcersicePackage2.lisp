@@ -63,6 +63,12 @@
 (Conteo '(2 a b c (a d) 1 (a b c 2) 3)) ; (3 2)
 
 ;7)
+(defun Aplana (l)
+  (cond ((null l) nil)
+        ((atom (car l)) (cons (car l) (Aplana (cdr l))))
+        (t (append (Aplana (car l)) (Aplana (cdr l))))))
+
+(Aplana '((a b) c d ((e f g)) h)) ; (A B C D E F G H)
 ;8)
 (defun Diagonal (lista)
     (loop for i from 0
@@ -96,3 +102,9 @@
 	           collect i))
 
 (filtra-múltiplos '(1 2 3 4 5 6) 2) ; (1 3 5)
+
+;14)
+(defun Implica (&rest argumentos)
+             (every #'identity argumentos))
+
+(Implica T T) ;=> T
