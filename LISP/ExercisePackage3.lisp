@@ -1,5 +1,14 @@
 ;Jesús Alexis Torreblanca Faces
 
+;1)
+(defun ElemInPos (elem lista pos cont)
+       (cond ((null lista) nil)
+       	     ((and (equal pos cont)(equal (first lista) elem)) T)
+		         (T (ElemInPos elem (rest lista) pos (+ cont 1)))))
+
+(ElemInPos 'a '(a b c d) 2 0) ; NIL
+(ElemInPos 'a '(a b c d) 0 0) ; T
+
 ;2)
 (defun Inicio-en(lista elem)
       (cond ((null lista) NIL)
@@ -87,6 +96,39 @@
         ((atom (car l)) (if (or (equal 'a (car l)) (equal 'e (car l)) (equal 'i (car l)) (equal 'o (car l)) (equal 'u (car l)))
 			     (FiltraVocales (cdr l)) (cons (car l) (Filtravocales (cdr l)))))
         (t (append (FiltraVocales (car l)) (FiltraVocales (cdr l))))))
+
+;12)
+(defun Filtra-multiplos (lista elem)
+       (cond ((null lista) nil)
+       	     ((not (equal 0 (mod (first lista) elem))) (cons (first lista) (Filtra-multiplos (rest lista) elem)))
+		         (T (Filtra-multiplos (rest lista) elem))))
+
+(filtra-multiplos '(1 2 3 4 5 6) 2) ; (1 3 5)
+
+;13)
+(defun Celdas (lista cont)
+       (cond ((null lista) cont)
+       	     ((atom (first lista)) (Celdas (rest lista) (+ cont 1)))
+		         (T (+ (Celdas (first lista) cont) (Celdas (rest lista) (+ cont 1))))))
+
+(Celdas '(((1)) 2 3 4 5) 0) ; 7
+
+;14)
+(defun Implica (&rest a)
+  (cond ((null a) t)
+       	(t (AND (car a) (Implica (cdr a))))))
+
+(Implica T T nil t) ; Nil
+
+;15)
+(defun matrix-multiply (m1 m2)
+ (mapcar
+  (lambda (row)
+   (apply #'mapcar
+    (lambda (&rest column)
+      (apply #'+ (mapcar #'* row column))) m2)) m1))
+
+(matrix-multiply '((1 2) (3 4)) '((-3 -8 3) (-2 1 4))) ; ((-7 -6 11) (-17 -20 25))
 
 ;16)
 (defun Encuentra(lista elem)
