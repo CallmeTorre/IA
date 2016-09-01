@@ -1,3 +1,5 @@
+;Jesús Alexis Torreblanca Faces
+
 ;2)
 (defun Inicio-en(lista elem)
       (cond ((null lista) NIL)
@@ -31,12 +33,60 @@
 (defun Contar (elem lista &optional cont)
        (cond ((null lista) (list elem cont))
        	     	((equal elem (first lista)) (Contar elem (rest lista) (+ cont 1)))
-		(T (Contar elem (rest lista) cont))))
+		          (T (Contar elem (rest lista) cont))))
 
 (defun Ultimo-impar (lista)
        (Contar (ImparAux (reverse lista)) lista 0))
 
 (ultimo-impar '(1 2 1)) ; (1 2)
+
+;6)
+(defun Conteo (lista num sublis)
+       (cond ((null lista) (list num sublis))
+       	     	((listp (first lista)) (Conteo (rest lista) (+ sublis 1) sublis))
+		          ((numberp (first lista)) (Conteo (rest lista) num (+ num 1)))
+		          (T (Conteo (rest lista) num sublis))))
+
+ (Conteo '(1 2 3 (1)) 0 0) ; (1 3)
+
+ ;7)
+ (defun Aplana (lista)
+       (cond ((null lista) nil)
+       	     	((atom (first lista)) (cons (first lista) (Aplana (rest lista))))
+		          (T (append (Aplana (first lista)) (Aplana (rest lista))))))
+
+(Aplana '(a (b c) ((a)) x)) ; (A B C A X)
+
+;8)
+(defun Diagonal (lista cont)
+       (cond ((null lista) nil)
+       	     	(T (cons (nth cont (first lista)) (Diagonal (rest lista) (+ cont 1))))))
+
+(diagonal '((a b c) (a b c) (a b c)) 0) ; (A B C)
+
+;9)
+(defun Analiza (lista)
+       (cond ((null lista) nil)
+       	     	((null (first lista)) (cons 'N (Analiza (rest lista))))
+		          ((listp (first lista)) (cons 'L (Analiza (rest lista))))
+		          (T (cons 'A (Analiza (rest lista))))))
+
+(Analiza '(a () 2 3 (a b c))) ; (A N A A L)
+
+;10)
+(defun Suma-numerica (lista resultado)
+       (cond ((null lista) resultado)
+       	     ((numberp (first lista)) (Suma-numerica (rest lista) (+ resultado (first lista))))
+		         (T (Suma-numerica (rest lista) resultado))))
+
+ (SUMA-numerica '(1 2 3 a b 2 c 3) 0) ; 11
+
+;11)
+(defun FiltraVocales (l)
+  (cond ((null l) nil)
+        ((atom (car l)) (if (or (equal 'a (car l)) (equal 'e (car l)) (equal 'i (car l)) (equal 'o (car l)) (equal 'u (car l)))
+			     (FiltraVocales (cdr l)) (cons (car l) (Filtravocales (cdr l)))))
+        (t (append (FiltraVocales (car l)) (FiltraVocales (cdr l))))))
 
 ;16)
 (defun Encuentra(lista elem)

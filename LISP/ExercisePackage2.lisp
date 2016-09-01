@@ -1,3 +1,5 @@
+;Jesús Alexis Torreblanca Faces
+
 ;1)
 (defun ElemInPos (elem lista pos)
     (if (equal elem (nth pos lista)) T NIL))
