@@ -354,3 +354,26 @@
        	     (T (cons (first lista1) (Pega (rest lista1) lista2)))))
 
 (PegaYCambia '(d b c d) '(d b d b) 'b 'w) ; (D W C D D W D W)
+
+;23)
+(defun qsort (l)
+   (cond
+   ((null l) nil)
+   (t (append
+      (qsort (listMenor (car l) (cdr l)))
+      (cons (car l) nil)
+      (qsort (listMayor (car l) (cdr l)))))))
+
+(defun listMenor (a b)
+    (cond
+    (( or (null a) (null b)) nil)
+    (( < a (car b)) (listMenor a (cdr b)))
+    (t (cons (car b) (listMenor a (cdr b))))))
+
+(defun listMayor (a b)
+    (cond
+    (( or ( null a)(null b)) nil)
+    (( >= a (car b)) (listMayor a (cdr b)))
+    (t (cons (car b) (listMayor a (cdr b))))))
+
+(qsort '(6 5 4 3 1)) ; (1 3 4 5 6)
