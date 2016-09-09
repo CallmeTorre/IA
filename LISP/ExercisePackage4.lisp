@@ -1,3 +1,12 @@
+;Jesús Alexis Torreblanca Faces
+
+;1)
+(defun Collect (fun l)
+    (cond ((null lista) nil)
+	   (t (Collect (funcall fun (car lista) (cadr lista))))))
+
+(Collect #'+ '(1 2 3 4)) ; 10
+
 ;2)
 (defun palindromo (lista)
        (if (equal nil lista) T
@@ -35,3 +44,34 @@
       (nconc (subseq list count) (subseq list 0 count))))
 
 (listRotate '(a b c d e f g h) :right 3) ; (D E F G H A B C)
+
+;6)
+(defun Max&Pos (a)
+       (let* ((dim (array-dimensions a))
+       (f (first dim))
+       (c (second dim))
+       (elem 0)
+       (pos 0))
+       (loop for i from 0 to (- c 1)
+            collect(dotimes(j f (cons elem pos))
+			 	               (if (< elem (aref a j i)) (setq pos j))
+					                  (setq elem (max elem (aref a j i)))))))
+
+(setq mat (make-array '(3 3) :initial-contents
+'((1 2 3)
+  (4 5 6)
+  (7 8 9))))
+(Max&Pos mat) ; ((7 . 2) (8 . 2) (9 . 2))
+
+;7)
+(defun Combine (fun lista)
+       (cond ((null lista) 0)
+       	     (T (funcall fun (first lista) (second lista) (Combine fun (cddr lista))))))
+
+;8)
+(defun levelAux (cadena lista cont)
+       (cond ((null lista) cont)
+       	     	((listp (first lista)) (levelAux cadena (first lista) (1+ cont)))
+		          ((equal cadena (string(first lista))) (return-from levelAux cont))
+       		    (T (levelAux cadena (rest lista) cont))))
+(levelAux "hola" ((hola a ) b c) 0)
