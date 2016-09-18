@@ -11,3 +11,4 @@ In this section you can find some resources that may help you learn more about C
 - [How to learn Lisp] (http://pchristensen.com/blog/articles/how-to-learn-lisp/)
 - [Practical Common Lisp](http://www.gigamonkeys.com/book/)
 - [Learn X in Y minutes](https://learnxinyminutes.com/docs/common-lisp/)
+- [Stop Calling It Artificial Intelligence](http://www.joshworth.com/stop-calling-in-artificial-intelligence/)
