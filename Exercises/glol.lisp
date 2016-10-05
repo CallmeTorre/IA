@@ -23,9 +23,11 @@
 
 (defun insert-to-open (estado operador metodo)
   (let ((nodo (create-node estado operador)))
-    (cond ((equal metodo :depth-first) (push nodo *open*))
-	  ((equal metodo :breath-first) (setq *open* (append *open* (list nodo))))
-	  (T Nil))))
+    (cond ((equal metodo :depth-first)
+						(push nodo *open*))
+	  			((equal metodo :breath-first)
+						(setq *open* (append *open* (list nodo))))
+	  			(T Nil))))
 
 (defun get-from-open ()
   (pop *open*))
