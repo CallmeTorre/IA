@@ -199,4 +199,30 @@
                         sucesores (filter-memories (expand estado)))
                   (loop for elem in sucesores do
                        (insert-to-open (first elem) (second elem) metodo)))))))
+
+(defun breath-first ()
+  (reset-all)
+  (let ((nodo nil)
+        (estado nil)
+        (sucesores '())
+        (meta-encontrada nil)
+        (metodo :breath-first))
+    (setq *numeroDeFilas* (get-maze-rows))
+    (setq *numeroDeColumnas* (get-maze-cols))
+    (insert-to-open *start* nil metodo)
+    (loop until (or meta-encontrada (null *open*)) do
+         (setq nodo (get-from-open)
+               estado (second nodo))
+         (push nodo *memory*)
+         (cond ((and (equal (aref *goal* 0)
+                            (aref estado 0))
+                     (equal (aref *goal* 1)
+                            (aref estado 1)))
+                (setq *solution* (extract-solution nodo))
+                (setq meta-encontrada T))
+               (T (setq *current-ancestor* (first nodo)
+                        sucesores (filter-memories (expand estado)))
+                  (loop for elem in sucesores do
+                       (insert-to-open (first elem) (second elem) metodo)))))))
+
 (start-maze)
