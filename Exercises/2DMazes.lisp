@@ -40,8 +40,11 @@
            (push nodo *open*)
            (order-open))
           ((equal metodo :A*)
-           (setq nodo (create-node estado operador (A-star *goal*)))
-           (push nodo *open*)
+           (setq nodo (create-node estado operador nil))
+           (setf (fifth nodo) (A-star nodo))
+           (if (remember-state-open? (second nodo) *open*)
+               (compare-node nodo *open*)
+               (push nodo *open*))
            (order-open))
           (T Nil))))
 
@@ -58,6 +61,31 @@
                      (min (aref estado 0) (aref *goal* 0))) 2)
             (expt (- (max (aref estado 1) (aref *goal* 1))
                      (min (aref estado 1) (aref *goal* 1))) 2))))
+
+(defun compare-node (nodo open)
+  (let ((nodo-copia-de-open nil))
+    (cond ((null open) (push nodo *open*))
+          ((and (equal (aref (second nodo) 0) (aref (second (first open)) 0))
+                (equal (aref (second nodo) 1) (aref (second (first open)) 1))) (setq nodo-copia-de-open (first open))
+           (if (< (fifth nodo) (fifth nodo-copia-de-open))
+               (progn
+                 (delete nodo-copia-de-open open)
+                 (push nodo *open*))))
+          (T (compare-node nodo (rest open))))))
+
+(defun backtracking (nodo cont)
+  (labels ((locate-node (id lista)
+             (cond ((null lista) Nil)
+                   ((equal id (first (first lista))) (first lista))
+                   (T (locate-node id (rest lista))))))
+    (let ((current (locate-node (third nodo) *memory*)))
+      (loop while (not (null current)) do
+           (setq cont (incf cont))
+           (setq current (locate-node (third current) *memory*))))
+    cont))
+
+(defun A-star (nodo)
+  (+ (get-distance (second nodo)) (backtracking nodo 0)))
 
 (defun valid-operator? (op estado)
 (let* ((fila (aref estado 0))
@@ -270,6 +298,31 @@
                 (setq meta-encontrada T))
                (T (setq *current-ancestor* (first nodo)
                         sucesores (filter-memories (filter-open (expand estado))))
+                  (loop for elem in sucesores do
+                       (insert-to-open (first elem) (second elem) metodo)))))))
+
+(defun A* ()
+  (reset-all)
+  (let ((nodo nil)
+        (estado nil)
+        (sucesores '())
+        (meta-encontrada nil)
+        (metodo :A*))
+    (setq *numeroDeFilas* (get-maze-rows))
+    (setq *numeroDeColumnas* (get-maze-cols))
+    (insert-to-open *start* nil metodo)
+    (loop until (or meta-encontrada (null *open*)) do
+         (setq nodo (get-from-open)
+               estado (second nodo))
+         (push nodo *memory*)
+         (cond ((and (equal (aref *goal* 0)
+                            (aref estado 0))
+                     (equal (aref *goal* 1)
+                            (aref estado 1)))
+                (setq *solution* (extract-solution nodo))
+                (setq meta-encontrada T))
+               (T (setq *current-ancestor* (first nodo)
+                        sucesores (filter-memories (expand estado)))
                   (loop for elem in sucesores do
                        (insert-to-open (first elem) (second elem) metodo)))))))
 
