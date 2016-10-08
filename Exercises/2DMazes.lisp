@@ -36,7 +36,7 @@
            (setq nodo (create-node estado operador nil))
            (setq *open* (append *open* (list nodo))))
           ((equal metodo :best-first)
-           (setq nodo (create-node estado operador (moves-left *goal*)))
+           (setq nodo (create-node estado operador (get-distance estado)))
            (push nodo *open*)
            (order-open))
           ((equal metodo :A*)
@@ -47,6 +47,17 @@
 
 (defun get-from-open ()
   (pop *open*))
+
+(defun order-open ()
+  "Funcion que permite reordenar la frontera de busqueda"
+  (setq *open* (stable-sort *open* #'< :key #'(lambda (x) (fifth x)))))
+
+(defun get-distance (estado)
+  "Función basada en la ecuación para obtener la distancia entre dos puntos (((x2-x1)^2 +(y2-y1)^2)^1/2)"
+  (sqrt (+  (expt (- (max (aref estado 0) (aref *goal* 0))
+                     (min (aref estado 0) (aref *goal* 0))) 2)
+            (expt (- (max (aref estado 1) (aref *goal* 1))
+                     (min (aref estado 1) (aref *goal* 1))) 2))))
 
 (defun valid-operator? (op estado)
 (let* ((fila (aref estado 0))
@@ -155,6 +166,18 @@
               (equal (aref estado 1) (aref (second (first memoria)) 1))) T)
         (T (remember-state-memory? estado (rest memoria)))))
 
+(defun filter-open (lista-estados-y-ops)
+  (cond ((null  lista-estados-y-ops)  Nil)
+        ((remember-state-open? (first (first  lista-estados-y-ops)) *open*)
+         (filter-open  (rest  lista-estados-y-ops)))
+        (T  (cons (first lista-estados-y-ops) (filter-open  (rest  lista-estados-y-ops))))))
+
+(defun remember-state-open? (estado open)
+  (cond ((null  open)  Nil)
+        ((and (equal (aref estado 0) (aref (second (first open)) 0))
+              (equal (aref estado 1) (aref (second (first open)) 1))) T)
+        (T (remember-state-memory? estado (rest open)))))
+
 (defun extract-solution (nodo)
   (labels ((locate-node (id lista)
              (cond ((null lista) Nil)
@@ -225,4 +248,30 @@
                   (loop for elem in sucesores do
                        (insert-to-open (first elem) (second elem) metodo)))))))
 
+(defun best-first ()
+  (reset-all)
+  (let ((nodo nil)
+        (estado nil)
+        (sucesores '())
+        (meta-encontrada nil)
+        (metodo :best-first))
+    (setq *numeroDeFilas* (get-maze-rows))
+    (setq *numeroDeColumnas* (get-maze-cols))
+    (insert-to-open *start* nil metodo)
+    (loop until (or meta-encontrada (null *open*)) do
+         (setq nodo (get-from-open)
+               estado (second nodo))
+         (push nodo *memory*)
+         (cond ((and (equal (aref *goal* 0)
+                            (aref estado 0))
+                     (equal (aref *goal* 1)
+                            (aref estado 1)))
+                (setq *solution* (extract-solution nodo))
+                (setq meta-encontrada T))
+               (T (setq *current-ancestor* (first nodo)
+                        sucesores (filter-memories (filter-open (expand estado))))
+                  (loop for elem in sucesores do
+                       (insert-to-open (first elem) (second elem) metodo)))))))
+
 (start-maze)
+
