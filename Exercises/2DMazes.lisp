@@ -1,3 +1,5 @@
+;Jesús Alexis Torreblanca Faces
+
 (load "maze_lib.lisp")
 
 (add-algorithm 'depth-first)
@@ -57,10 +59,18 @@
 
 (defun get-distance (estado)
   "Función basada en la ecuación para obtener la distancia entre dos puntos (((x2-x1)^2 +(y2-y1)^2)^1/2)"
-  (sqrt (+  (expt (- (max (aref estado 0) (aref *goal* 0))
-                     (min (aref estado 0) (aref *goal* 0))) 2)
-            (expt (- (max (aref estado 1) (aref *goal* 1))
-                     (min (aref estado 1) (aref *goal* 1))) 2))))
+  (+  (- (max (aref estado 0) (aref *goal* 0))
+         (min (aref estado 0) (aref *goal* 0)))
+      (- (max (aref estado 1) (aref *goal* 1))
+         (min (aref estado 1) (aref *goal* 1)))))
+         
+;Check this
+;(defun get-distance (estado)
+;  "Función basada en la ecuación para obtener la distancia entre dos puntos (((x2-x1)^2 +(y2-y1)^2)^1/2)"
+;  (sqrt (+  (expt (- (max (aref estado 0) (aref *goal* 0))
+;                     (min (aref estado 0) (aref *goal* 0))) 2)
+;            (expt (- (max (aref estado 1) (aref *goal* 1))
+;                     (min (aref estado 1) (aref *goal* 1))) 2))))
 
 (defun compare-node (nodo open)
   (let ((nodo-copia-de-open nil))
@@ -327,4 +337,3 @@
                        (insert-to-open (first elem) (second elem) metodo)))))))
 
 (start-maze)
-
