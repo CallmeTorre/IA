@@ -1,20 +1,22 @@
 ;Jesús Alexis Torreblanca Faces
 
+;Librería que genera los laberintos
 (load "maze_lib.lisp")
 
+;Metodos de Busqueda para la solución del algoritmo
 (add-algorithm 'depth-first)
 (add-algorithm 'breath-first)
 (add-algorithm 'best-first)
 (add-algorithm 'A*)
 
-(defparameter *open* '())
-(defparameter *memory* '())
+(defparameter *open* '()) ;Frontera de Busqueda
+(defparameter *memory* '()) ;Memoria de Intentos Previos
 
 (defparameter *id* 0)
 (defparameter *current-ancestor*  nil)
 (defparameter *solution* nil)
-(defparameter *numeroDeFilas* 0)
-(defparameter *numeroDeColumnas* 0)
+(defparameter *filas* 0)
+(defparameter *columnas* 0)
 (defparameter *sol* nil)
 (defparameter *ops* '((:Arriba 0)
                       (:Arriba-derecha 1)
@@ -26,10 +28,12 @@
                       (:Arriba-izquierda 7)))
 
 (defun create-node (estado operador funcion)
+  "Función la cual crea un nodo con la estructura (<id> <estado> <id-ancestro> <operador> <función-heuristica>)"
   (incf *id*)
   (list (1- *id*) estado *current-ancestor* (second operador) funcion))
 
 (defun insert-to-open (estado operador metodo)
+  "Función la cual dependiendo del metodo que se le pase inserta a la frontera de busqueda el nodo"
   (let ((nodo '()))
     (cond ((equal metodo :depth-first)
            (setq nodo (create-node estado operador nil))
@@ -51,6 +55,7 @@
           (T Nil))))
 
 (defun get-from-open ()
+  "Función que obtiene el primer nodo de la frontera de busqueda"
   (pop *open*))
 
 (defun order-open ()
@@ -58,21 +63,14 @@
   (setq *open* (stable-sort *open* #'< :key #'(lambda (x) (fifth x)))))
 
 (defun get-distance (estado)
-  "Función basada en la ecuación para obtener la distancia entre dos puntos (((x2-x1)^2 +(y2-y1)^2)^1/2)"
+  "Función basada en la ecuación para obtener la distancia entre dos puntos (((x2-x1)^2 +(y2-y1)^2)^1/2) pero ligeramente modificada (x2-x1) + (y2-y1)"
   (+  (- (max (aref estado 0) (aref *goal* 0))
          (min (aref estado 0) (aref *goal* 0)))
       (- (max (aref estado 1) (aref *goal* 1))
          (min (aref estado 1) (aref *goal* 1)))))
-         
-;Check this
-;(defun get-distance (estado)
-;  "Función basada en la ecuación para obtener la distancia entre dos puntos (((x2-x1)^2 +(y2-y1)^2)^1/2)"
-;  (sqrt (+  (expt (- (max (aref estado 0) (aref *goal* 0))
-;                     (min (aref estado 0) (aref *goal* 0))) 2)
-;            (expt (- (max (aref estado 1) (aref *goal* 1))
-;                     (min (aref estado 1) (aref *goal* 1))) 2))))
 
 (defun compare-node (nodo open)
+  "Funcion la cual busca si el nodo a insertar está ya en la frontera y si es asi compara el valor de su función heuristica"
   (let ((nodo-copia-de-open nil))
     (cond ((null open) (push nodo *open*))
           ((and (equal (aref (second nodo) 0) (aref (second (first open)) 0))
@@ -83,7 +81,8 @@
                  (push nodo *open*))))
           (T (compare-node nodo (rest open))))))
 
-(defun backtracking (nodo cont)
+(defun get-cost (nodo cont)
+  "Función la cual obtiene el nivel de profundidad (costo) de un nodo determinado"
   (labels ((locate-node (id lista)
              (cond ((null lista) Nil)
                    ((equal id (first (first lista))) (first lista))
@@ -95,9 +94,11 @@
     cont))
 
 (defun A-star (nodo)
-  (+ (get-distance (second nodo)) (backtracking nodo 0)))
+  "Función que obtiene el valor de la función de evaluación del algoritmo A* f(x) = g(x) + h(x)"
+  (+ (get-distance (second nodo)) (get-cost nodo 0)))
 
 (defun valid-operator? (op estado)
+  "Predicado que valida si un operador es aplicable a un estado determinado"
 (let* ((fila (aref estado 0))
          (columna (aref estado 1))
          (casillaActual (get-cell-walls fila columna))
@@ -109,16 +110,15 @@
 
     (if (not (= fila 0)) (setq casillaArriba (get-cell-walls (1- fila) columna)))
     (if (not (= columna 0)) (setq casillaIzquierda (get-cell-walls fila (1- columna))))
-	(if (not (= columna (1- *numeroDeColumnas*))) (setq casillaDerecha (get-cell-walls fila (1+ columna))))
-    (if (not (= fila (1- *numeroDeFilas*))) (setq casillaAbajo (get-cell-walls (1+ fila) columna)))
-
+	  (if (not (= columna (1- *columnas*))) (setq casillaDerecha (get-cell-walls fila (1+ columna))))
+    (if (not (= fila (1- *filas*))) (setq casillaAbajo (get-cell-walls (1+ fila) columna)))
 
     (cond ((= operador 0)
            (and (not (= fila 0))
                 (= (boole boole-and casillaActual 1) 0)))
           ((= operador 1)
            (and (not (= fila 0))
-                (not (= columna (1- *numeroDeColumnas*)))
+                (not (= columna (1- *columnas*)))
                 (and (or (= (boole boole-and casillaActual 1) 0)
                          (= (boole boole-and casillaDerecha 1) 0))
                      (or (= (boole boole-and casillaArriba 2) 0)
@@ -127,10 +127,10 @@
                          (= (boole boole-and casillaActual 2) 0))
                      (or (= (boole boole-and casillaActual 1) 0)
                          (= (boole boole-and casillaActual 2) 0)))))
-          ((= operador 2) (and (not (= columna (1- *numeroDeColumnas*)))
+          ((= operador 2) (and (not (= columna (1- *columnas*)))
                          (= (boole boole-and casillaActual 2) 0)))
-          ((= operador 3) (and (not (= fila (1- *numeroDeFilas*)))
-                         (not (= columna (1- *numeroDeColumnas*)))
+          ((= operador 3) (and (not (= fila (1- *filas*)))
+                         (not (= columna (1- *columnas*)))
                          (and (or (= (boole boole-and casillaActual 4) 0)
                                   (= (boole boole-and casillaDerecha 4) 0))
                               (or (= (boole boole-and casillaAbajo 2) 0)
@@ -139,9 +139,9 @@
                                   (= (boole boole-and casillaActual 2) 0))
                               (or (= (boole boole-and casillaActual 4) 0)
                                   (= (boole boole-and casillaActual 2) 0)))))
-          ((= operador 4) (and (not (= fila (1- *numeroDeFilas*)))
+          ((= operador 4) (and (not (= fila (1- *filas*)))
                          (= (boole boole-and casillaActual 4) 0)))
-          ((= operador 5) (and (not (= fila (1- *numeroDeFilas*)))
+          ((= operador 5) (and (not (= fila (1- *filas*)))
                          (not (= columna 0))
                          (and (or (= (boole boole-and casillaActual 4) 0)
                                   (= (boole boole-and casillaIzquierda 4) 0))
@@ -166,6 +166,7 @@
           (T nil))))
 
 (defun apply-operator (operador estado)
+  "Función que aplica un operador a un estado"
     (let* ((fila (aref estado 0))
         (columna (aref estado 1))
         (op (first operador))
@@ -183,6 +184,7 @@
     estado))
 
 (defun expand (estado)
+  "Función que expande el estado a todos sus posibles descendientes"
   (let ((descendientes nil)
         (nuevo-estado nil))
     (dolist (op *ops* descendientes)
@@ -193,30 +195,35 @@
                 (setq descendientes (cons (list nuevo-estado op) descendientes))))))))
 
 (defun filter-memories (lista-estados-y-ops)
+  "Funcion que filtra los estados que se encuentran en la memoria"
   (cond ((null  lista-estados-y-ops)  Nil)
         ((remember-state-memory? (first (first  lista-estados-y-ops)) *memory*)
           (filter-memories  (rest  lista-estados-y-ops)))
         (T  (cons (first lista-estados-y-ops) (filter-memories  (rest  lista-estados-y-ops))))))
 
 (defun remember-state-memory? (estado memoria)
+  "Predicado que nos dice si un estado se encuentra en la memoria"
   (cond ((null  memoria)  Nil)
         ((and (equal (aref estado 0) (aref (second (first memoria)) 0))
               (equal (aref estado 1) (aref (second (first memoria)) 1))) T)
         (T (remember-state-memory? estado (rest memoria)))))
 
 (defun filter-open (lista-estados-y-ops)
+  "Funcion que filtra los estados que se encuentran en la frontera de busqueda"
   (cond ((null  lista-estados-y-ops)  Nil)
         ((remember-state-open? (first (first  lista-estados-y-ops)) *open*)
          (filter-open  (rest  lista-estados-y-ops)))
         (T  (cons (first lista-estados-y-ops) (filter-open  (rest  lista-estados-y-ops))))))
 
 (defun remember-state-open? (estado open)
+  "Predicado que nos dice si un estado se encuentra en la frontera de busqueda"
   (cond ((null  open)  Nil)
         ((and (equal (aref estado 0) (aref (second (first open)) 0))
               (equal (aref estado 1) (aref (second (first open)) 1))) T)
         (T (remember-state-memory? estado (rest open)))))
 
 (defun extract-solution (nodo)
+  "Función que extrae la solución del laberinto"
   (labels ((locate-node (id lista)
              (cond ((null lista) Nil)
                    ((equal id (first (first lista))) (first lista))
@@ -229,6 +236,7 @@
     *sol*))
 
 (defun reset-all ()
+  "Función que limpia todas las variables globales"
   (setq  *open*  nil)
   (setq  *memory*  nil)
   (setq  *id*  0)
@@ -243,8 +251,8 @@
         (sucesores '())
         (meta-encontrada nil)
         (metodo :depth-first))
-    (setq *numeroDeFilas* (get-maze-rows))
-    (setq *numeroDeColumnas* (get-maze-cols))
+    (setq *filas* (get-maze-rows))
+    (setq *columnas* (get-maze-cols))
     (insert-to-open *start* nil metodo)
     (loop until (or meta-encontrada (null *open*)) do
          (setq nodo (get-from-open)
@@ -268,8 +276,8 @@
         (sucesores '())
         (meta-encontrada nil)
         (metodo :breath-first))
-    (setq *numeroDeFilas* (get-maze-rows))
-    (setq *numeroDeColumnas* (get-maze-cols))
+    (setq *filas* (get-maze-rows))
+    (setq *columnas* (get-maze-cols))
     (insert-to-open *start* nil metodo)
     (loop until (or meta-encontrada (null *open*)) do
          (setq nodo (get-from-open)
@@ -293,8 +301,8 @@
         (sucesores '())
         (meta-encontrada nil)
         (metodo :best-first))
-    (setq *numeroDeFilas* (get-maze-rows))
-    (setq *numeroDeColumnas* (get-maze-cols))
+    (setq *filas* (get-maze-rows))
+    (setq *columnas* (get-maze-cols))
     (insert-to-open *start* nil metodo)
     (loop until (or meta-encontrada (null *open*)) do
          (setq nodo (get-from-open)
@@ -318,8 +326,8 @@
         (sucesores '())
         (meta-encontrada nil)
         (metodo :A*))
-    (setq *numeroDeFilas* (get-maze-rows))
-    (setq *numeroDeColumnas* (get-maze-cols))
+    (setq *filas* (get-maze-rows))
+    (setq *columnas* (get-maze-cols))
     (insert-to-open *start* nil metodo)
     (loop until (or meta-encontrada (null *open*)) do
          (setq nodo (get-from-open)
