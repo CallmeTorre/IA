@@ -1,29 +1,21 @@
 ;Jesús Alexis Torreblanca Faces
 
-;Cargamos la libreria para comenzar a trabajar con ella
 (load "maze_lib.lisp")
 
-;Algoritmo al menu de la pagina principal
 (add-algorithm 'depth-first)
 (add-algorithm 'breath-first)
 (add-algorithm 'best-first)
 (add-algorithm 'A*)
 
-;Permite saber para cada problema la frontera de busqueda y memoria
 (defparameter *open*  '())
 (defparameter *memory* '())
-
-;Permite almacenar los datos del laberinto
 (defparameter *id* 0)
 (defparameter *current-ancestor* nil)
 (defparameter *solution* nil)
 (defparameter *filas*  nil)
 (defparameter *columnas* nil)
 (defparameter *sol* nil)
-
-;Permite saber de donde vino el puente
 (defparameter *puente* 0)
-;Definicion de operadores
 (defparameter *operadores* '((:Mover-Arriba 0)
                        (:Mover-Arriba-Derecha 1)
                        (:Mover-Derecha 2)
@@ -33,8 +25,8 @@
                        (:Mover-Izquierda 6)
                        (:Mover-Arriba-Izquierda 7)))
 
-;[Funcion] Permite resetear todo
 (defun reset-all ()
+  "Función que limpia todas las variables globales"
   (setq *open*   nil)
   (setq *memory*  nil)
   (setq *id*  0)
@@ -43,20 +35,20 @@
   (setq *current-ancestor*  nil)
   (setq *solution*  nil))
 
-;[Funcion] Permite crear los nodos necesarios
 (defun create-node (estado operador importancia)
+  "Función la cual crea un nodo con la estructura (<id> <estado> <id-ancestro> <operador> <función-heuristica>)"
   (incf *id*)
   (list (1- *id*) importancia estado *current-ancestor* (second operador)))
 
-;[Funcion] Permite saber la distancia get-distance, esta basada en la idea de la ecuacion de la distancia entre
-; dos puntos, pero con una ligera modificacion, solo obtenemos el maximo de: (x2-x1),(y2-y1)
 (defun get-distance (estado)
-  (+ (- (max (aref estado 0) (aref *goal* 0))
+  "Función basada en la ecuación para obtener la distancia entre dos puntos (((x2-x1)^2 +(y2-y1)^2)^1/2) pero ligeramente modificada (x2-x1) + (y2-y1)"
+  (max (- (max (aref estado 0) (aref *goal* 0))
           (min (aref estado 0) (aref *goal* 0)))
        (- (max (aref estado 1) (aref *goal* 1))
           (min (aref estado 1) (aref *goal* 1)))))
 
 (defun insert-to-open (estado operador metodoBusqueda)
+  "Función la cual dependiendo del metodo que se le pase inserta a la frontera de busqueda el nodo"
   (let* ((nodo '()))
     (cond ((eql metodoBusqueda :depth-first )
            (setq nodo (create-node  estado operador nil))
@@ -67,7 +59,7 @@
 		  ((eql metodoBusqueda :best-first)
            (setq nodo (create-node  estado operador (get-distance estado)))
            (push nodo *open* )
-           (order-open)
+           (order-open))
 		  ((eql metodoBusqueda :Astar)
            (setq nodo (create-node  estado operador (get-distance estado)))
            (setf (second nodo) (+ (second nodo) (get-cost nodo 0)))
@@ -75,10 +67,10 @@
                (compare-node nodo *open* )
                (push nodo *open* ))
            (order-open)
-		   )))
+		   ))))
 
-;[Funcion] Permite hacer get-cost, se usa para el algoritmo A*
 (defun get-cost (nodo num)
+  "Función la cual obtiene el nivel de profundidad (costo) de un nodo determinado"
   (labels ((locate-node (id lista)
              (cond ((null lista) nil)
                    ((eql id (first (first lista))) (first lista))
@@ -89,17 +81,16 @@
         (setq current (locate-node (fourth current) *memory*))))
    num))
 
-
-;[Funcion] Permite obtener el ultimo elemento de la frontera de busqueda
 (defun get-from-open ()
+  "Función que obtiene el primer nodo de la frontera de busqueda"
   (pop *open* ))
 
 (defun order-open ()
   "Funcion que permite reordenar la frontera de busqueda"
   (setq *open* (stable-sort *open* #'< :key #'(lambda (x) (fifth x)))))
 
-;[Funcion] Permite validar nuestro operador
 (defun valid-operator? (op estado)
+  "Predicado que valida si un operador es aplicable a un estado determinado"
   (let* ((fila (aref estado 0))
          (columna (aref estado 1))
          (casillaActual (get-cell-walls fila columna))
@@ -220,8 +211,8 @@
                 (T nil)))
           (T nil))))
 
-;[Funcion] Permite aplicar el operador al estado
 (defun apply-operator (operador estado)
+  "Función que aplica un operador a un estado"
   (let* ((fila (aref estado 0))
          (columna (aref estado 1))
          (operador (first operador))
@@ -239,9 +230,8 @@
       (T "error"))
     estadoFinal))
 
-
-;[Funcion] Permite ayudarnos en nuestro algoritmo A*
 (defun compare-node (nodo listaMemoria)
+  "Funcion la cual busca si el nodo a insertar está ya en la frontera y si es asi compara el valor de su función heuristica"
   (let ((nodoAux nil))
     (cond ((null listaMemoria) (push nodo *open* ))
           ((and (equal (aref (third nodo) 0) (aref (third (first listaMemoria)) 0))
@@ -252,8 +242,8 @@
                       (push nodo *open* ))))
           (T (compare-node nodo (rest listaMemoria))))))
 
-;[Funcion] Permite expand el estado
 (defun expand (estado)
+  "Función que expande el estado a todos sus posibles descendientes"
   (let ((descendientes nil) (nuevoEstado nil))
     (dolist (operador *operadores* descendientes)
       (if (valid-operator? operador estado)
@@ -261,15 +251,15 @@
             (setq nuevoEstado (apply-operator operador estado))
             (setq descendientes (cons (list nuevoEstado operador) descendientes)))))))
 
-;[Funcion] Permite filtrar nuestra memoria
 (defun filter-memories (listaDeEstados lista)
+  "Funcion que filtra los estados que se encuentran en la memoria"
   (cond ((null listaDeEstados) nil)
         ((remember-state-memory? (first (first listaDeEstados)) lista)
          (filter-memories (rest listaDeEstados) lista))
         (T (cons (first listaDeEstados) (filter-memories (rest listaDeEstados) lista)))))
 
-;[Funcion] Es un predicado, devuelve verdadero o falso si recuerda el estado en la memoria
 (defun remember-state-memory? (estado memoria)
+  "Predicado que nos dice si un estado se encuentra en la memoria"
   (cond ((null memoria) nil)
         ((and (equal (aref estado 0) (aref (third (first memoria)) 0))
               (equal (aref estado 1) (aref (third (first memoria)) 1))
@@ -277,8 +267,8 @@
                    (= 0 (aref estado 2)))) T)
         (T (remember-state-memory? estado (rest memoria)))))
 
-;[Funcion] Permite extraer la solucion
 (defun extract-solution (nodo)
+  "Función que extrae la solución del laberinto"
   (labels ((locate-node (id lista)
              (cond ((null lista) nil)
                    ((eql id (first (first lista))) (first lista))
