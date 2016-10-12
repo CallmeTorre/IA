@@ -63,7 +63,7 @@
 		  ((eql metodoBusqueda :Astar)
            (setq nodo (create-node  estado operador (get-distance estado)))
            (setf (second nodo) (+ (second nodo) (get-cost nodo 0)))
-           (if (remember-state-memory? (third nodo) *open* )
+           (if (remember-state-open? (third nodo) *open* )
                (compare-node nodo *open* )
                (push nodo *open* ))
            (order-open)
@@ -215,8 +215,12 @@
   "Función que aplica un operador a un estado"
   (let* ((fila (aref estado 0))
          (columna (aref estado 1))
+		     (casillaActual (get-cell-walls fila columna))
          (operador (first operador))
          (estadoFinal nil))
+	(if (or (= casillaActual 16)(= casillaActual 17))
+			(setq *puente* 1)
+		  (setq *puente* 0))
 
     (case operador
       (:Mover-Arriba (setq estadoFinal (make-array 3 :initial-contents (list (1- fila) columna *puente*))))
@@ -260,12 +264,28 @@
 
 (defun remember-state-memory? (estado memoria)
   "Predicado que nos dice si un estado se encuentra en la memoria"
+  (let* ((fila (aref estado 0))
+         (columna (aref estado 1))
+         (casilla (get-cell-walls fila columna)))
   (cond ((null memoria) nil)
         ((and (equal (aref estado 0) (aref (third (first memoria)) 0))
               (equal (aref estado 1) (aref (third (first memoria)) 1))
-              (and (= 0 (aref (third (first memoria)) 2))
-                   (= 0 (aref estado 2)))) T)
-        (T (remember-state-memory? estado (rest memoria)))))
+              (not (or (= casilla 16) (= casilla 17)))) T)
+        (T (remember-state-memory? estado (rest memoria))))))
+
+(defun filter-open (lista-estados-y-ops)
+  "Funcion que filtra los estados que se encuentran en la frontera de busqueda"
+  (cond ((null  lista-estados-y-ops)  Nil)
+        ((remember-state-open? (first (first  lista-estados-y-ops)) *open*)
+          (filter-open  (rest  lista-estados-y-ops)))
+        (T  (cons (first lista-estados-y-ops) (filter-open  (rest  lista-estados-y-ops))))))
+
+(defun remember-state-open? (estado open)
+  "Predicado que nos dice si un estado se encuentra en la frontera de busqueda"
+  (cond ((null  open)  Nil)
+        ((and (equal (aref estado 0) (aref (second (first open)) 0))
+              (equal (aref estado 1) (aref (second (first open)) 1))) T)
+        (T (remember-state-memory? estado (rest open)))))
 
 (defun extract-solution (nodo)
   "Función que extrae la solución del laberinto"
