@@ -1,14 +1,15 @@
 (defparameter *board* '(()(A V R)(A V R)(A V R)(A V R)(A V R)(A V R)
                        (A V R)(A V R)(A V R)(A V R)(A V R)(A V R)()))
-(defparameter *shoot-again* nil)
+(defparameter *shoot-again* T)
+(defparameter *slots-shooted* nil)
 (defparameter *id* 0)
 (defparameter *current-ancestor* nil)
-(defparameter *ops* '((:primera-casilla 7)
-                      (:segunda-casilla 8)
-                      (:tercera-casilla 9)
-                      (:cuarta-casilla 10)
-                      (:quinta-casilla 11)
-                      (:sexta-casilla 12)))
+(defparameter *ops* '((:primera-casilla 6)
+                      (:segunda-casilla 5)
+                      (:tercera-casilla 4)
+                      (:cuarta-casilla 3)
+                      (:quinta-casilla 2)
+                      (:sexta-casilla 1)))
 (defparameter *previous-slots* nil)
 
 (defun print-board ()
@@ -26,6 +27,9 @@
 (defun get-balls (casilla)
   (nth casilla *board*))
 
+(defun same-slot? (casilla-actual)
+ ( member casilla-actual *slots-shooted*))
+
 (defun move-ball (casilla-actual casilla-target)
   (let* ((canica (pop (nth casilla-actual *board*))))
     (format t "~& Canica ~A moviendo a ~A ~%" canica (nth casilla-target *board*))
@@ -40,16 +44,72 @@
         (T T)))
 
 (defun human-turn ()
-  (let* ((casilla-target nil)
+  (let* ((casilla-actual nil)
          (canicas-casilla nil)
-         (moviento-valido nil)
-         (casilla-target))
+         (mValido nil)
+         (casilla-target nil))
     (loop until (null *shoot-again*) do
-         (loop until movimiento-valido do
-              (if (valid-human-slot? (setq casilla-actual (read)))
+         (loop until mValido do
+              (print-board)
+              (print "~& Escoge una casilla ~%")
+              (print "~& #ProTip: Solo puedes escoger las casillas de la parte de abajo del tablero (7,8,9,10,11,12)")
+              (print "~& ProTip2:A = 1, V  = 5, R = 10")
+              (if (valid-human-slot? (setq casilla-actual(read)))
                   (progn
                     (setq canicas-casilla (get-balls casilla-actual))
-                    (setq movimiento-valido T))
+                    (setq mValido T))
                   (print "Tu movimento no es valido")))
-        ;//Terminar el loop para cada canica de tu slot ))
+         (loop for canica in canicas-casilla do
+              (format t "~& ¿En que casilla quieres colocar ~A ~%?" canica)
+              (loop until (null (same-slot? (setq casilla-target(read)))) do
+                   (print "~& Ya tiraste en esa casilla"))
+              (push casilla-target *slots-shooted*)
+              (move-ball casilla-actual casilla-target))
+         (setq casilla-actual nil
+               casilla-target nil
+               mValido nil
+               canicas-casilla nil))))
+;///////////////////////////////////////////////////
+;Human Stuff
+;//////////////////////////////////////////////////
 
+(defun valid-operator? (operador estado)
+  (let ((operador (second operador)))
+    (cond ((= operador 6)
+           (if (null (nth 6 estado)) nil T))
+          ((= operador 5)
+           (if (null (nth 5 estado)) nil T))
+          ((= operador 4)
+           (if (null (nth 4 estado)) nil T))
+          ((= operador 3)
+           (if (null (nth 3 estado)) nil T))
+          ((= operador 2)
+           (if (null (nth 2 estado)) nil T))
+          ((= operador 1)
+           (if (null (nth 1 estado)) nil T))
+          (T nil))))
+
+(defun apply-operator (operador estado)
+  (let* ((operador (first operador))
+        (casilla-actual (second operador))
+        (canicas-casilla (get-balls casilla-actual))
+        (estado-resultado nil))
+    (case operador
+      (:primera-casilla (setq estado-resultado (move-machine-balls estado casilla-actual canicas-casilla)))
+      (:segunda-casilla (setq estado-resultado (move-machine-balls estado casilla-actual canicas-casilla)))
+      (:tercera-casilla (setq estado-resultado (move-machine-balls estado casilla-actual canicas-casilla)))
+      (:cuarta-casilla (setq estado-resultado (move-machine-balls estado casilla-actual canicas-casilla)))
+      (:quinta-casilla (setq estado-resultado (move-machine-balls estado casilla-actual canicas-casilla)))
+      (:sexta-casilla (setq estado-resultado (move-machine-balls estado casilla-actual canicas-casilla)))
+      (T "Error"))
+    estado-resultado))
+
+(defun move-machine-balls (estado casilla canicas))
+
+(defun heuristic-function (estado))
+
+(defun expand (estado))
+
+(defun machine-turn ())
+
+(defun play ())
