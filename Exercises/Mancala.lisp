@@ -12,6 +12,8 @@
                       (:quinta-casilla 2)
                       (:sexta-casilla 1)))
 (defparameter *previous-slots* nil)
+(defparameter *end-game* nil)
+(defparameter *winner-player* nil)
 
 (defun print-board ()
   (print "///////////////////////////////////////////////////")
@@ -24,6 +26,22 @@
 (defun reset-game ()
   (setq *board* '(()(A V R)(A V R)(A V R)(A V R)(A V R)(A V R)
                   (A V R)(A V R)(A V R)(A V R)(A V R)(A V R)())))
+
+(defun game-ended? ()
+  (return-from game-ended? (or (and
+                                (null (nth 0 *board*))
+                                (null (nth 1 *board*))
+                                (null (nth 2 *board*))
+                                (null (nth 3 *board*))
+                                (null (nth 4 *board*))
+                                (null (nth 5 *board*)))
+                               (and
+                                (null (nth 7 *board*))
+                                (null (nth 8 *board*))
+                                (null (nth 9 *board*))
+                                (null (nth 10 *board*))
+                                (null (nth 11 *board*))
+                                (null (nth 12 *board*))))))
 
 (defun get-balls (casilla)
   (nth casilla *board*))
@@ -73,7 +91,12 @@
                casilla-target nil
                *slots-shooted* nil
                mValido nil
-               canicas-casilla nil))))
+               canicas-casilla nil)
+         (if (game-ended?)
+             (progn
+               (setq *end-game* (game-ended?))
+               (setq *winner-player* 0)
+               (setq *shoot-again* nil))))))
 
 ;///////////////////////////////////////////////////
 ;Human Stuff
@@ -100,7 +123,6 @@
          (casilla-actual (second operador))
          (canicas-casilla (get-balls casilla-actual))
          (estado-resultado nil))
-    (print ops)
     (case ops
       (:primera-casilla (setq estado-resultado (move-machine-balls estado casilla-actual canicas-casilla)))
       (:segunda-casilla (setq estado-resultado (move-machine-balls estado casilla-actual canicas-casilla)))
@@ -115,8 +137,10 @@
 (defun move-machine-balls (estado casilla canicas)
   (let* ((estado-copia (copy-list estado))
          (canica-copia nil)
+         (shoot-again nil)
          (casilla-target (1- casilla))
          (cont 0))
+
     (loop for canica in canicas do
          (setq canica-copia (pop (nth casilla estado-copia)))
          (if (< casilla-target 0)
@@ -132,10 +156,10 @@
                (setq casilla-target 6)
                (push canica-copia (nth casilla-target estado-copia))
                (setq casilla-target (1- casilla-target))))
-         finally (return (list estado-copia)))))
+         finally (return (list estado-copia shoot-again)))))
 
 (defun count-pieces (casilla A V R)
-  (cond ((null casilla) (+ A V R))
+  (cond ((null casilla) (+ (* A 1) (* V 5) (* R 10)))
         ((equal (first casilla) 'A) (count-pieces (rest casilla) (1+ A) V R))
         ((equal (first casilla) 'V) (count-pieces (rest casilla) A (1+ V) R))
         ((equal (first casilla) 'R) (count-pieces (rest casilla) A V (1+ R)))
@@ -166,7 +190,7 @@
 
 (defun minimax (estado profundidad max-profundidad jugador infinito menos-infinito)
   (if (= profundidad max-profundidad)
-      (heuristic-function estado)
+      (heuristic-function (first estado))
       (let ((sucesores (expand estado)))
         (if (null sucesores)
             (heuristic-function (first estado))
@@ -193,13 +217,28 @@
 
 (defun machine-turn ()
   (let ((movimiento nil)
-        (movimiento-final nil))
-    (loop until (null *shoot-again*) do
+        (movimiento-final nil)
+        (shoot-again T))
+    (loop until (null shoot-again) do
          (setq movimiento (minimax *board* 0 1 1 *infinite* (- *infinite*)))
          (setq movimiento-final (first movimiento))
-         (setq *board* movimiento-final)
-         (setq *shoot-again* nil))
+         (setq shoot-again (second movimiento))
+         (setq *board* movimiento-final))
+    (if (game-ended?)
+        (progn
+          (setq *end-game* (game-ended?))
+          (setq *winner-player* 0)
+          (setq *shoot-again* nil)))
     (print-board)))
 
-(defun play ())
+(defun play ()
+  (reset-game)
+  (loop until (not (null *end-game*)) do
+       (print-board)
+       (game-ended?)
+       (human-turn)
+       (setq *shoot-again* T)
+       (if (null *end-game*)
+           (machine-turn))))
 
+(play)
