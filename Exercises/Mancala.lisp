@@ -57,6 +57,22 @@
     (format t "~& Casilla target: ~A ~%" casilla-target)
     (print-board)))
 
+;(defun insert-ball (lista)
+;  (loop for x in lista do
+ ;      (push (first x) (nth (second x) *board*))
+  ;     (push (second x) *slots-shooted*)))
+
+;(defun move-ball (casilla-actual)
+ ; (let ((canicas (get-balls casilla-actual))
+  ;      (movimiento nil))
+  ;  (format t "~& Canicas en casilla:  ~A ~%" canicas)
+   ; (format t "~& Indique la casilla a la cual ira cada canica de la forma ((canica casilla)(canica casilla)...)~%")
+;    (setq movimiento(read))
+ ;   (insert-ball movimiento)
+  ;  (loop for canica in canicas do
+   ;      (pop (nth casilla-actual *board*)))
+   ; (print-board)))
+
 (defun valid-human-slot? (casilla-actual)
   (cond ((member casilla-actual '(1 2 3 4 5 6)) nil)
         ((null (get-balls casilla-actual)) nil)
@@ -138,8 +154,7 @@
   (let* ((estado-copia (copy-list estado))
          (canica-copia nil)
          (shoot-again nil)
-         (casilla-target (1- casilla))
-         (cont 0))
+         (casilla-target (1- casilla)))
 
     (loop for canica in canicas do
          (setq canica-copia (pop (nth casilla estado-copia)))
