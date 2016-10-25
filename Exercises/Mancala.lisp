@@ -1,54 +1,29 @@
-(defparameter *board* '(()(A V R)(A V R)(A V R)(A V R)(A V R)(A V R)
-                       (A V R)(A V R)(A V R)(A V R)(A V R)(A V R)()))
+(defparameter *board* '((1 5 10)(1 5 10)(1 5 10)(1 5 10)(1 5 10)(1 5 10)()(1 5 10)(1 5 10)(1 5 10)(1 5 10)(1 5 10)(1 5 10)()))
 (defparameter *shoot-again* T)
 (defparameter *slots-shooted* nil)
 (defparameter *id* 0)
 (defparameter *infinite* most-positive-fixnum)
 (defparameter *current-ancestor* nil)
-(defparameter *ops* '((:primera-casilla 6)
-                      (:segunda-casilla 5)
-                      (:tercera-casilla 4)
-                      (:cuarta-casilla 3)
-                      (:quinta-casilla 2)
-                      (:sexta-casilla 1)))
+(defparameter *ops* '((:primera-casilla 7)
+                      (:segunda-casilla 8)
+                      (:tercera-casilla 9)
+                      (:cuarta-casilla 10)
+                      (:quinta-casilla 11)
+                      (:sexta-casilla 12)))
 (defparameter *previous-slots* nil)
 (defparameter *end-game* nil)
 (defparameter *winner-player* nil)
 (defparameter *IA-points* 0)
 (defparameter *human-points* 0)
 
-(defun count-pieces (casilla A V R)
-  (cond ((null casilla) (+ (* A 1) (* V 5) (* R 10)))
-        ((equal (first casilla) 'A) (count-pieces (rest casilla) (1+ A) V R))
-        ((equal (first casilla) 'V) (count-pieces (rest casilla) A (1+ V) R))
-        ((equal (first casilla) 'R) (count-pieces (rest casilla) A V (1+ R)))
-        (T (count-pieces (rest casilla) A V R))))
-
-;(defun order-balls (casilla aux)
-;  (cond ((null casilla) aux)
-;        ((equal (first casilla) 'R) (order-balls (rest casilla) (push 10  aux)))
-;        ((equal (first casilla) 'V) (order-balls (rest casilla) (push 5 aux)))
-;        ((equal (first casilla) 'A) (order-balls (rest casilla) (push 1 aux)))
-;        (T (order-balls (rest casilla) aux))))
-
-;(defun order-again-balls (casilla aux)
-;  (cond ((null casilla) aux)
-;        ((= (first casilla) 10) (order-again-balls (rest casilla) (push 'R  aux)))
-;        ((= (first casilla) 5) (order-again-balls (rest casilla) (push 'V aux)))
-;        ((= (first casilla) 1) (order-again-balls (rest casilla) (push 'A aux)))
-;        (T (order-again-balls (rest casilla) aux))))
-
 (defun print-board ()
-  (print "///////////////////////////////////////////////////")
-  (format  t  "~& ~A ~A ~A ~A ~A ~A ~A~%"
-           (count-pieces (nth 0 *board*) 0 0 0)(nth 1 *board*)(nth 2 *board*)(nth 3 *board*)(nth 4 *board*)(nth 5 *board*)(nth 6 *board*))
-  (format  t  "~& ~A ~A ~A ~A ~A ~A ~A"
-           (nth 7 *board*)(nth 8 *board*)(nth 9 *board*)(nth 10 *board*)(nth 11 *board*)(nth 12 *board*)(count-pieces (nth 13 *board*) 0 0 0))
-  (print "///////////////////////////////////////////////////"))
+  (format  t   "~&~% | ~A |  | ~:A |  | ~:A |  | ~:A |  | ~:A |  | ~:A |  | ~:A | ~%"
+           (apply #'+ (nth 13 *board*))(apply #'+ (nth 12 *board*)) (apply #'+ (nth 11 *board*)) (apply #'+ (nth 10 *board*)) (apply #'+ (nth 9 *board*)) (apply #'+ (nth 8 *board*)) (apply #'+ (nth 7 *board*)))
+  (format  t   "~& | ~:A |  | ~:A |  | ~:A |  | ~:A |  | ~:A |  | ~:A |  | ~:A | ~%~%"
+           (apply #'+ (nth 0 *board*)) (apply #'+ (nth 1 *board*)) (apply #'+ (nth 2 *board*)) (apply #'+ (nth 3 *board*)) (apply #'+ (nth 4 *board*)) (apply #'+ (nth 5 *board*)) (apply #'+ (nth 6 *board*))))
 
 (defun reset-game ()
-  (setq *board* '(()(A V R)(A V R)(A V R)(A V R)(A V R)(A V R)
-                  (A V R)(A V R)(A V R)(A V R)(A V R)(A V R)())))
+  (setq *board* '((1 5 10)(1 5 10)(1 5 10)(1 5 10)(1 5 10)(1 5 10)()(1 5 10)(1 5 10)(1 5 10)(1 5 10)(1 5 10)(1 5 10)())))
 
 (defun game-ended? ()
   (return-from game-ended? (or (and
@@ -70,34 +45,31 @@
   (nth casilla *board*))
 
 (defun same-slot? (casilla-actual)
- ( member casilla-actual *slots-shooted*))
+  ( member casilla-actual *slots-shooted*))
 
-;(defun move-ball (casilla-actual casilla-target)
-;  (let* ((canica (pop (nth casilla-actual *board*))))
-;    (format t "~& Canica ~A moviendo a ~A ~%" canica (nth casilla-target *board*))
-;    (push canica (nth casilla-target *board*))
-;    (format t "~& Casilla escogida: ~A ~%" casilla-actual)
-;    (format t "~& Casilla target: ~A ~%" casilla-target)
-;    (print-board)))
-
-(defun insert-ball (lista)
-  (loop for x in lista do
-       (push (first x) (nth (second x) *board*))
-       (push (second x) *slots-shooted*)))
+(defun insert-ball (lista casilla)
+  (let ((casilla-siguiente (1+ casilla)))
+    (loop for x in lista do
+         (push x (nth casilla-siguiente *board*))
+         (push casilla-siguiente *slots-shooted*)
+         (setq casilla-siguiente (1+ casilla-siguiente))
+         (if (> casilla-siguiente 13)
+             (setq casilla-siguiente 0)
+             ))))
 
 (defun move-ball (casilla-actual)
   (let ((canicas (get-balls casilla-actual))
         (movimiento nil))
     (format t "~& Canicas en casilla:  ~A ~%" canicas)
-    (format t "~& Indique la casilla a la cual ira cada canica de la forma ((canica casilla)(canica casilla)...)~%")
+    (format t "~& Indique la casilla a la cual ira cada canica de la forma (canica canica canica ...)~%")
     (setq movimiento(read))
-    (insert-ball movimiento)
+    (insert-ball movimiento casilla-actual)
     (loop for canica in canicas do
          (pop (nth casilla-actual *board*)))
     (print-board)))
 
 (defun valid-human-slot? (casilla-actual)
-  (cond ((member casilla-actual '(1 2 3 4 5 6)) nil)
+  (cond ((member casilla-actual '(6 7 8 9 10 11 12 13)) nil)
         ((null (get-balls casilla-actual)) nil)
         (T T)))
 
@@ -108,13 +80,12 @@
     (loop until (null *shoot-again*) do
          (loop until mValido do
               (print "~& Escoge una casilla ~%")
-              (print "~& #ProTip: Solo puedes escoger las casillas de la parte de abajo del tablero (7,8,9,10,11,12)")
-              (print "~& ProTip2:A = 1, V  = 5, R = 10")
+              (print "~& #ProTip: Solo puedes escoger las casillas de la parte de abajo del tablero (0,1,2,3,4,5)")
               (if (valid-human-slot? (setq casilla-actual(read)))
                   (setq mValido T)
                   (print "Tu movimiento no es valido")))
          (move-ball casilla-actual)
-         (if (= (first *slots-shooted*) 13)
+         (if (= (first *slots-shooted*) 6)
              (setq *shoot-again* T)
              (setq *shoot-again* nil))
          (setq casilla-actual nil
@@ -126,60 +97,24 @@
                      *winner-player* 0
                      *shoot-again* nil))))))
 
-;(defun human-turn ()
-;  (let* ((casilla-actual nil)
-;         (canicas-casilla nil)
-;         (mValido nil)
-;         (casilla-target nil))
-;    (loop until (null *shoot-again*) do
-;         (loop until mValido do
- ;             (print-board)
-  ;            (print "~& Escoge una casilla ~%")
-  ;            (print "~& #ProTip: Solo puedes escoger las casillas de la parte de abajo del tablero (7,8,9,10,11,12)")
-  ;            (print "~& ProTip2:A = 1, V  = 5, R = 10")
-  ;            (if (valid-human-slot? (setq casilla-actual(read)))
-  ;                (progn
-  ;                  (setq canicas-casilla (get-balls casilla-actual))
-  ;                  (setq mValido T))
-   ;               (print "Tu movimento no es valido")))
-    ;     (loop for canica in canicas-casilla do
-    ;          (format t "~& ¿En que casilla quieres colocar ~A ~%?" canica)
-     ;         (loop until (null (same-slot? (setq casilla-target(read)))) do
-      ;             (print "~& Ya tiraste en esa casilla"))
-       ;       (push casilla-target *slots-shooted*)
-        ;      (move-ball casilla-actual casilla-target))
-        ; (if (= (first *slots-shooted*) 13)
-        ;     (setq *shoot-again* T)
-        ;     (setq *shoot-again* nil))
-        ; (setq casilla-actual nil
-        ;       casilla-target nil
-        ;       *slots-shooted* nil
-         ;      mValido nil
-         ;      canicas-casilla nil)
-        ; (if (game-ended?)
-         ;    (progn
-         ;      (setq *end-game* (game-ended?))
-         ;      (setq *winner-player* 0)
-         ;      (setq *shoot-again* nil))))))
-
 ;///////////////////////////////////////////////////
 ;Human Stuff
 ;///////////////////////////////////////////////////
 
 (defun valid-operator? (operador estado)
   (let ((operador (second operador)))
-    (cond ((= operador 6)
-           (if (null (nth 6 estado)) nil T))
-          ((= operador 5)
-           (if (null (nth 5 estado)) nil T))
-          ((= operador 4)
-           (if (null (nth 4 estado)) nil T))
-          ((= operador 3)
-           (if (null (nth 3 estado)) nil T))
-          ((= operador 2)
-           (if (null (nth 2 estado)) nil T))
-          ((= operador 1)
-           (if (null (nth 1 estado)) nil T))
+    (cond ((= operador 7)
+           (if (null (nth 7 estado)) nil T))
+          ((= operador 8)
+           (if (null (nth 8 estado)) nil T))
+          ((= operador 9)
+           (if (null (nth 9 estado)) nil T))
+          ((= operador 10)
+           (if (null (nth 10 estado)) nil T))
+          ((= operador 11)
+           (if (null (nth 11 estado)) nil T))
+          ((= operador 12)
+           (if (null (nth 12 estado)) nil T))
           (T nil))))
 
 (defun apply-operator (operador estado)
@@ -197,69 +132,118 @@
       (T "Error"))
     estado-resultado))
 
-(defun move-machine-balls (estado casilla canicas)
-  (let* ((estado-copia (copy-list estado))
-         (canica-copia nil)
-         (longitud-canicas (length canicas))
-         (shoot-again nil)
-         (best-canica nil)
-        ; (canicas-aux nil)
-        ; (canicas-aux2 nil)
-         (pos-best-canica nil)
-         (casilla-target (1- casilla))
-         (cont 0))
+;(defun move-machine-balls (estado casilla canicas)
+;  (let* ((estado-copia (copy-list estado))
+;         (canica-copia nil)
+;         (longitud-canicas (length canicas))
+;         (shoot-again nil)
+;         (best-canica nil)
+;         (casilla-target (1- casilla))
+;         (cont 0))
 
-    (cond ((null (position 'R canicas :test #'equal))(setq pos-best-canica (position 'V canicas :test #'equal)))
-          ((and (null (position 'R canicas :test #'equal))(null (position 'V canicas :test #'equal)))(setq pos-best-canica (position 'A canicas :test #'equal)))
-          (T (setq pos-best-canica (position 'R canicas :test #'equal))))
+ ;   (setq canicas(sort canicas #'>))
+;    (if (>= longitud-canicas casilla)
+ ;       (progn
+ ;         (setq best-canica (first canicas))
+ ;         (push best-canica (nth 0 estado-copia))))
 
-    (if (>= longitud-canicas casilla)
+  ;  (if (= 0 (- longitud-canicas casilla))
+  ;      (setq shoot-again T)
+  ;      (setq shoot-again nil))
+
+  ;  (loop for canica in canicas do
+  ;       (setq canica-copia (pop (nth casilla estado-copia)))
+  ;       (if (and (= cont 0)(equal best-canica canica-copia))
+  ;           (setq cont (1+ cont))
+  ;           (progn
+  ;             (if (< casilla-target 0)
+  ;                 (progn
+  ;                   (setq casilla-target 7)
+  ;                   (push canica-copia (nth casilla-target estado-copia))
+  ;                   (setq casilla-target (1+ casilla-target)))
+  ;                 (progn
+  ;                   (push canica-copia (nth casilla-target estado-copia))
+  ;                   (setq casilla-target (1- casilla-target))))
+  ;             (if (> casilla-target 13)
+  ;                 (progn
+  ;                   (setq casilla-target 6)
+  ;                   (push canica-copia (nth casilla-target estado-copia))
+  ;                   (setq casilla-target (1- casilla-target))))))
+                                        ;       finally (return (list estado-copia shoot-again casilla)))))
+
+(defun move-machine-balls (tablero casillaActual canicasAux)
+  (let* ((canicaAux nil)
+         (contador 0)
+         (estado nil)
+         (canicas nil)
+         (longitudParaTurno 0)
+         (contadorParaTurno 0)
+         (copiaTablero nil)
+         (canicaMayorEnBase -1)
+         (maquinaSeguirTirando nil)
+         (casillaAMeter (1+ casillaActual)))
+
+    ;Usamos funciones destructivas por lo que es recomendable trabajar con copias totalmente separadas de lo por
+    ; lo que estado es una copia de el estado actual de nuestro tablero
+    (setq estado (copy-list tablero))
+
+    ;Por seguridad y para que no guarde referencias a otras celdas de la lista, creamos una copia de los elementos
+    ; originales
+    (loop for elemento in tablero do
+         (setq copiaTablero (cons elemento copiaTablero)))
+    (setq copiaTablero  (reverse copiaTablero))
+    (loop for can in canicasAux do
+         (setq canicas (cons can canicas)))
+
+    ;Realizamos una resta para saber el numero de canicas que le vamos a dar al humano, quedandonos siempre
+    ; las de mejor valor asi como insertando la de mayor valor en nuestra base
+    (setq canicas(sort canicas #'>))
+    (setq longitudParaTurno (length canicas))
+    (if ( >= (length canicas) (- 13 casillaActual))
         (progn
-          (setq best-canica (nth pos-best-canica canicas))
-          (push best-canica (nth 0 estado-copia))))
+          (setq canicaMayorEnBase (first canicas))
+          (push canicaMayorEnBase (nth 13 copiaTablero))
+                                        ;(setq seguirTirando T)
+          ))
 
-    ;(setq canicas-aux (order-balls canicas ()))
-    ;(setq canicas-aux2 (sort canicas-aux #'<))
-    ;(setq canicas (order-again-balls canicas-aux2 ()))
+    (if ( > (length canicas) (- 13 casillaActual))
+        (setq maquinaSeguirTirando nil))
 
-    (if (= 0 (- longitud-canicas casilla))
-        (setq shoot-again T)
-        (setq shoot-again nil))
+     (if (= 0 (- (length canicas) (- 13 casillaActual)))
+         (setq maquinaSeguirTirando T))
 
+     (if (> 0 (- (length canicas) (- 13 casillaActual)))
+         (setq maquinaSeguirTirando nil))
+
+
+    ;Anteriormente ya hemos insertado la canica de mayor valor en nuestra base por lo que detectamos cuando
+    ; se repitela canica para no insertarla, asi como debemos reiniciar la cuenta para insertar las otras
+    ; canicas en la base enemiga
     (loop for canica in canicas do
-         (setq canica-copia (pop (nth casilla estado-copia)))
-         (if (and (= cont 0)(equal best-canica canica-copia))
-               (setq cont (1+ cont))
+         (setq contadorParaTurno (1+ contadorParaTurno))
+         (setq canicaAux (pop (nth casillaActual copiaTablero)))
+         (if (and ( = contador 0 ) ( = canicaMayorEnBase canicaAux))
              (progn
-               (if (< casilla-target 0)
-                   (progn
-                     (setq casilla-target 7)
-                     (push canica-copia (nth casilla-target estado-copia))
-                     (setq casilla-target (1+ casilla-target)))
-                   (progn
-                     (push canica-copia (nth casilla-target estado-copia))
-                     (setq casilla-target (1- casilla-target))))
-               (if (> casilla-target 13)
-                   (progn
-                     (setq casilla-target 6)
-                     (push canica-copia (nth casilla-target estado-copia))
-                     (setq casilla-target (1- casilla-target))))))
-         finally (return (list estado-copia shoot-again casilla)))))
+               (setq contador (1+ contador)))
+             (progn
+               (if (> casillaAMeter 12)
+                   (setq casillaAMeter 0))
+               (push canicaAux (nth casillaAMeter copiaTablero))
+               (setq casillaAMeter (1+ casillaAMeter))))
+       ;  (setq contadorParaTurno (1+ contadorParaTurno))
+       finally (return (list copiaTablero maquinaSeguirTirando casillaActual)))))
 
 (defun heuristic-function (estado)
   (let ((movimiento 0)
         (tablero (first estado)))
     (setq movimiento
-          (+ (- (count-pieces (nth 0 tablero) 0 0 0)(count-pieces (nth 13 tablero) 0 0 0))
-             (- (+ (count-pieces (nth 1 tablero) 0 0 0)(count-pieces (nth 2 tablero) 0 0 0)(count-pieces (nth 3 tablero) 0 0 0)
-                   (count-pieces (nth 4 tablero) 0 0 0)(count-pieces (nth 5 tablero) 0 0 0)(count-pieces (nth 6 tablero) 0 0 0))
-                (+ (count-pieces (nth 7 tablero) 0 0 0)(count-pieces (nth 8 tablero) 0 0 0)(count-pieces (nth 9 tablero) 0 0 0)
-                   (count-pieces (nth 10 tablero) 0 0 0)(count-pieces (nth 11 tablero) 0 0 0)(count-pieces (nth 12 tablero) 0 0 0)))))
+          (+ (- (apply #'+ (nth 13 tablero)) (apply #'+ (nth 6 tablero)))
+             (- (+ (apply #'+ (nth 7 tablero))(apply #'+ (nth 8 tablero))(apply #'+ (nth 9 tablero))
+                   (apply #'+ (nth 10 tablero))(apply #'+ (nth 11 tablero))(apply #'+ (nth 12 tablero)))
+                (+ (apply #'+ (nth 0 tablero))(apply #'+ (nth 1 tablero))(apply #'+ (nth 2 tablero))
+                   (apply #'+ (nth 3 tablero))(apply #'+ (nth 4 tablero))(apply #'+ (nth 5 tablero))))))
     (cond ((not (null (second estado)))
            (setq movimiento -10000))
-          ((and (or (null (nth 1 tablero))(null (nth 2 tablero))(null (nth 3 tablero)))
-                (or (> (length (nth 6 tablero)) 3)(> (length (nth 5 tablero)) 3)))
-           (setq movimiento 0))
           (T movimiento))
     movimiento))
 
@@ -279,32 +263,55 @@
                (push nuevo-estado sucesores)))
        finally (return sucesores))))
 
-(defun minimax (estado profundidad max-profundidad jugador infinito menos-infinito)
+(defun minimax-alpha-beta (tablero profundidad max-profundidad jugador alpha beta)
+  ;Si llegamos a la profundidad maxima retornamos la evaluacion de la heuristica
   (if (= profundidad max-profundidad)
-      (heuristic-function estado)
-      (let ((sucesores (expand estado)))
+      (heuristic-function  tablero)
+      ;Si aun no hemos llegado a la profundidad maxima continuamos
+      ;Primero recuperamos como sucesores la aplicacion de los operadores al tablero
+      (let ((sucesores (expand tablero)))
+        ;Si ya no tenemos sucesores que analizar llamamos a la heuristica del Mancala
+        ; second de tablero es si puede volver a tirar la maquina o no
         (if (null sucesores)
-            (heuristic-function estado)
-            (do ((nuevo-valor nil)
-                 (mejor-mov (first sucesores)))
+            (heuristic-function tablero)
+            ;Supones que nuestro mejor movimiento es el primero de nuestro sucesor ya que
+            ; second es si puede volver a tirar la maquina o no
+            (do ((nuevoValor nil)
+                 (mejorMovimiento (car sucesores)))
+
+                ;Cuando ya no hay mas sucesores y su profundidad es 0 retornamos el mejor movimiento
                 ((null sucesores)
-                 (if (= profundidad 0)
-                     mejor-mov
-                     menos-infinito))
-              (setf nuevo-valor
-                    (- (minimax
-                        (first sucesores)
+a                 (if (= profundidad 0)
+                     mejorMovimiento
+                     beta))
+
+              ;Seteamos el nuevo Valor y llamamos recursivamente a minimax
+              (setf nuevoValor
+                    (- (minimax-alpha-beta
+                        ;Le pasamos el sucesor que fue el resultado de aplicar el operador
+                        ; es decir le enviamos el tablero ya con un operador ya hecho
+                        (car sucesores)
+                        ;Mandamos 1+ profundidad
                         (1+ profundidad)
+                        ;Le pasamos la maxima profundidad
                         max-profundidad
+                        ;Cambiamos de jugador a humano
                         (change-player jugador)
-                        (- menos-infinito)
-                        (- infinito))))
-              (when (> nuevo-valor menos-infinito)
-                (setf menos-infinito nuevo-valor)
-                (setf mejor-mov (first sucesores)))
-              (if (>= infinito menos-infinito)
-                  (setf sucesores nil)
-                  (setf sucesores (rest sucesores))))))))
+                        ;Cambiamos el signo por que ahora necesitamos usar minimax
+                        (- beta)
+                        (- alpha))))
+
+              ;Si nuevoValor > beta entonces encontramos un sucesor que es mejor que cualquiera
+              ; que haya sido examinado, por lo que ahora nuestro beta va a ser nuestro nuevo
+              ; valor y nuestro mejor movimiento el primer elemento de los sucesores
+              (when (> nuevoValor beta)
+                (setf beta nuevoValor)
+                (setf mejorMovimiento (car sucesores)))
+
+              ;Si beta >= alpha dejamos de examinar esa rama
+              (if (>= beta alpha)
+                  (setf sucesores nil) ;Si es verdadero terminamos el loop
+                  (setf sucesores (cdr sucesores))))))))
 
 (defun machine-turn ()
   (let ((movimiento nil)
@@ -320,8 +327,7 @@
         (progn
           (setq *end-game* (game-ended?))
           (setq *winner-player* 0)
-          (setq *shoot-again* nil)))
-    (print-board)))
+          (setq *shoot-again* nil)))))
 
 (defun play ()
   (reset-game)
@@ -333,22 +339,24 @@
            (machine-turn)))
   (if (= *winner-player* 1)
       (setq *IA-points*
-            (+ (count-pieces (nth 7 *board*) 0 0 0)
-               (count-pieces (nth 8 *board*) 0 0 0)
-               (count-pieces (nth 9 *board*) 0 0 0)
-               (count-pieces (nth 10 *board*) 0 0 0)
-               (count-pieces (nth 11 *board*) 0 0 0)
-               (count-pieces (nth 12 *board*) 0 0 0)
-               (count-pieces (nth 0 *board*) 0 0 0))))
+            (+ (apply #'+ (nth 0 *board*))
+               (apply #'+ (nth 1 *board*))
+               (apply #'+ (nth 2 *board*))
+               (apply #'+ (nth 3 *board*))
+               (apply #'+ (nth 4 *board*))
+               (apply #'+ (nth 5 *board*))
+               (apply #'+ (nth 13 *board*))))
+      (setq *IA-points* (apply #'+ (nth 13 *board*))))
   (if (= *winner-player* 0)
       (setq *human-points*
-            (+ (count-pieces (nth 1 *board*) 0 0 0)
-               (count-pieces (nth 2 *board*) 0 0 0)
-               (count-pieces (nth 3 *board*) 0 0 0)
-               (count-pieces (nth 4 *board*) 0 0 0)
-               (count-pieces (nth 5 *board*) 0 0 0)
-               (count-pieces (nth 6 *board*) 0 0 0)
-               (count-pieces (nth 13 *board*) 0 0 0))))
+            (+ (apply #'+ (nth 7 *board*))
+               (apply #'+ (nth 8 *board*))
+               (apply #'+ (nth 9 *board*))
+               (apply #'+ (nth 10 *board*))
+               (apply #'+ (nth 11 *board*))
+               (apply #'+ (nth 12 *board*))
+               (apply #'+ (nth 6 *board*))))
+      (setq *human-points* (apply #'+ (nth 6 *board*))))
   (format t "~& Tu puntuación: ~A Puntuacion de la IA: ~A ~%" *human-points* *IA-points*))
 
 ;(trace machine-turn)
