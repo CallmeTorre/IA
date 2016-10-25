@@ -132,45 +132,6 @@
       (T "Error"))
     estado-resultado))
 
-;(defun move-machine-balls (estado casilla canicas)
-;  (let* ((estado-copia (copy-list estado))
-;         (canica-copia nil)
-;         (longitud-canicas (length canicas))
-;         (shoot-again nil)
-;         (best-canica nil)
-;         (casilla-target (1- casilla))
-;         (cont 0))
-
- ;   (setq canicas(sort canicas #'>))
-;    (if (>= longitud-canicas casilla)
- ;       (progn
- ;         (setq best-canica (first canicas))
- ;         (push best-canica (nth 0 estado-copia))))
-
-  ;  (if (= 0 (- longitud-canicas casilla))
-  ;      (setq shoot-again T)
-  ;      (setq shoot-again nil))
-
-  ;  (loop for canica in canicas do
-  ;       (setq canica-copia (pop (nth casilla estado-copia)))
-  ;       (if (and (= cont 0)(equal best-canica canica-copia))
-  ;           (setq cont (1+ cont))
-  ;           (progn
-  ;             (if (< casilla-target 0)
-  ;                 (progn
-  ;                   (setq casilla-target 7)
-  ;                   (push canica-copia (nth casilla-target estado-copia))
-  ;                   (setq casilla-target (1+ casilla-target)))
-  ;                 (progn
-  ;                   (push canica-copia (nth casilla-target estado-copia))
-  ;                   (setq casilla-target (1- casilla-target))))
-  ;             (if (> casilla-target 13)
-  ;                 (progn
-  ;                   (setq casilla-target 6)
-  ;                   (push canica-copia (nth casilla-target estado-copia))
-  ;                   (setq casilla-target (1- casilla-target))))))
-                                        ;       finally (return (list estado-copia shoot-again casilla)))))
-
 (defun move-machine-balls (tablero casillaActual canicasAux)
   (let* ((canicaAux nil)
          (contador 0)
@@ -274,43 +235,27 @@
         ; second de tablero es si puede volver a tirar la maquina o no
         (if (null sucesores)
             (heuristic-function tablero)
-            ;Supones que nuestro mejor movimiento es el primero de nuestro sucesor ya que
-            ; second es si puede volver a tirar la maquina o no
             (do ((nuevoValor nil)
                  (mejorMovimiento (car sucesores)))
 
-                ;Cuando ya no hay mas sucesores y su profundidad es 0 retornamos el mejor movimiento
                 ((null sucesores)
-a                 (if (= profundidad 0)
+                 (if (= profundidad 0)
                      mejorMovimiento
                      beta))
 
-              ;Seteamos el nuevo Valor y llamamos recursivamente a minimax
               (setf nuevoValor
                     (- (minimax-alpha-beta
-                        ;Le pasamos el sucesor que fue el resultado de aplicar el operador
-                        ; es decir le enviamos el tablero ya con un operador ya hecho
                         (car sucesores)
-                        ;Mandamos 1+ profundidad
                         (1+ profundidad)
-                        ;Le pasamos la maxima profundidad
                         max-profundidad
-                        ;Cambiamos de jugador a humano
                         (change-player jugador)
-                        ;Cambiamos el signo por que ahora necesitamos usar minimax
                         (- beta)
                         (- alpha))))
-
-              ;Si nuevoValor > beta entonces encontramos un sucesor que es mejor que cualquiera
-              ; que haya sido examinado, por lo que ahora nuestro beta va a ser nuestro nuevo
-              ; valor y nuestro mejor movimiento el primer elemento de los sucesores
               (when (> nuevoValor beta)
                 (setf beta nuevoValor)
                 (setf mejorMovimiento (car sucesores)))
-
-              ;Si beta >= alpha dejamos de examinar esa rama
               (if (>= beta alpha)
-                  (setf sucesores nil) ;Si es verdadero terminamos el loop
+                  (setf sucesores nil)
                   (setf sucesores (cdr sucesores))))))))
 
 (defun machine-turn ()
