@@ -1,14 +1,22 @@
-# Artificial Intelligence 
-Here you will find some examples and exercises using Common Lisp and it application to AI.
+# Inteligencia Artificial <a href="https://github.com/syl20bnr/spacemacs"><img src="https://cdn.rawgit.com/syl20bnr/spacemacs/442d025779da2f62fc86c2082703697714db6514/assets/spacemacs-badge.svg" /></a>
+Inteligencia Artificial usando Common Lisp en Español.
 
-# Prerequisites
-- [SBCL](http://www.sbcl.org/) is a high performance Common Lisp compiler.
-- [Emacs](https://www.gnu.org/software/emacs/) or if you are working with OS X you can use [Aquamacs](http://aquamacs.org/)
-- [Slime](https://common-lisp.net/project/slime/) is an Emacs mode for Common Lisp development.
+# Descripción
+El repositorio esta dividido en tres partes, la primera parte son funciones ejemplo hechas en Common Lisp para familiarizarse con el lenguaje.
 
-# Resources
-In this section you can find some resources that may help you learn more about Common Lisp and AI.
+La segunda parte del repositorio son un conjunto de ejercicios clásicos de Inteligencia Artificial claramente documentados que  contienen el problema que resuelven y el algoritmo utilizado.
+
+Por ultimo se encuentra la sección de PDFs en donde pueden consultar algunos libros utiles para aprender IA.
+
+# ¿Qué utilicé?
+- [SBCL](http://www.sbcl.org/).
+- [Aquamacs](http://aquamacs.org/).
+- [Slime](https://common-lisp.net/project/slime/).
+
+# Articulos
+En esta sección puedes encontrar algunos articulos que pueden ayudarte a aprender un poco más acerca de Common Lisp e Inteligencia Artificial.
 - [How to learn Lisp] (http://pchristensen.com/blog/articles/how-to-learn-lisp/)
 - [Practical Common Lisp](http://www.gigamonkeys.com/book/)
 - [Learn X in Y minutes](https://learnxinyminutes.com/docs/common-lisp/)
 - [Stop Calling It Artificial Intelligence](http://www.joshworth.com/stop-calling-in-artificial-intelligence/)
+
