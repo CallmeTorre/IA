@@ -1,3 +1,10 @@
+;------------------------------------------
+;| Jesús Alexis Torreblanca Faces         |
+;| Inteligencia Artificial                |
+;| Resuelve el problema Granjero, Lobo, 	|
+;| Oveja y Legumbres         				      |
+;------------------------------------------
+
 (defparameter *open* '())
 (defparameter *memory* '())
 (defparameter *id* 0)

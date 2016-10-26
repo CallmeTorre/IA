@@ -1,3 +1,9 @@
+;------------------------------------------
+;| Jesús Alexis Torreblanca Faces         |
+;| Inteligencia Artificial                |
+;| Resuelve el problema 8-puzzle          |
+;------------------------------------------
+
 (defparameter *open* '())
 (defparameter *memory* '())
 (defparameter *id* 0)

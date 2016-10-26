@@ -1,4 +1,9 @@
-;Jesús Alexis Torreblanca Faces
+;------------------------------------------
+;| Jesús Alexis Torreblanca Faces         |
+;| Inteligencia Artificial                |
+;| Resuelve laberintos 2D                 |
+;------------------------------------------
+;| Probar en: http://idic.likufanele.com/~fundamentosia/Maze2D/
 
 ;Librería que genera los laberintos
 (load "maze_lib.lisp")

@@ -1,31 +1,37 @@
+;------------------------------------------
+;| Jesús Alexis Torreblanca Faces         |
+;| Inteligencia Artificial                |
+;| Agente Jugador de Mancala              |
+;------------------------------------------
+
 (defparameter *board* '((1 5 10)(1 5 10)(1 5 10)(1 5 10)(1 5 10)(1 5 10)()(1 5 10)(1 5 10)(1 5 10)(1 5 10)(1 5 10)(1 5 10)()))
 (defparameter *shoot-again* T)
 (defparameter *slots-shooted* nil)
-(defparameter *id* 0)
-(defparameter *infinite* most-positive-fixnum)
-(defparameter *current-ancestor* nil)
+(defparameter *alfa* most-positive-fixnum)
 (defparameter *ops* '((:primera-casilla 7)
                       (:segunda-casilla 8)
                       (:tercera-casilla 9)
                       (:cuarta-casilla 10)
                       (:quinta-casilla 11)
                       (:sexta-casilla 12)))
-(defparameter *previous-slots* nil)
 (defparameter *end-game* nil)
 (defparameter *winner-player* nil)
 (defparameter *IA-points* 0)
 (defparameter *human-points* 0)
 
 (defun print-board ()
+  "Funcion que imprime el tablero del mancala, en cada casilla imprime el valor de la suma de las canicas que se encuentran en esa casilla"
   (format  t   "~&~% | ~A |  | ~:A |  | ~:A |  | ~:A |  | ~:A |  | ~:A |  | ~:A | ~%"
            (apply #'+ (nth 13 *board*))(apply #'+ (nth 12 *board*)) (apply #'+ (nth 11 *board*)) (apply #'+ (nth 10 *board*)) (apply #'+ (nth 9 *board*)) (apply #'+ (nth 8 *board*)) (apply #'+ (nth 7 *board*)))
   (format  t   "~& | ~:A |  | ~:A |  | ~:A |  | ~:A |  | ~:A |  | ~:A |  | ~:A | ~%~%"
            (apply #'+ (nth 0 *board*)) (apply #'+ (nth 1 *board*)) (apply #'+ (nth 2 *board*)) (apply #'+ (nth 3 *board*)) (apply #'+ (nth 4 *board*)) (apply #'+ (nth 5 *board*)) (apply #'+ (nth 6 *board*))))
 
 (defun reset-game ()
+  "Funcion que reinicia el tablero a su estado original"
   (setq *board* '((1 5 10)(1 5 10)(1 5 10)(1 5 10)(1 5 10)(1 5 10)()(1 5 10)(1 5 10)(1 5 10)(1 5 10)(1 5 10)(1 5 10)())))
 
 (defun game-ended? ()
+  "Predicado el cual valida si el juego ya termino checando si alguna hilera esta completamente vacia"
   (return-from game-ended? (or (and
                                 (null (nth 0 *board*))
                                 (null (nth 1 *board*))
@@ -42,12 +48,15 @@
                                 (null (nth 12 *board*))))))
 
 (defun get-balls (casilla)
+  "Funcion que obtiene las canicas en una casilla"
   (nth casilla *board*))
 
-(defun same-slot? (casilla-actual)
-  ( member casilla-actual *slots-shooted*))
+;(defun same-slot? (casilla-actual)
+;  "Predicado que valida que no se tire en la misma casilla"
+;  (member casilla-actual *slots-shooted*))
 
 (defun insert-ball (lista casilla)
+  "Funcion que inserta las canicas de la forma (canica canica canica ...) en las casillas aledañas"
   (let ((casilla-siguiente (1+ casilla)))
     (loop for x in lista do
          (push x (nth casilla-siguiente *board*))
@@ -58,6 +67,7 @@
              ))))
 
 (defun move-ball (casilla-actual)
+  "Funcion que mueve las canicas de la casilla seleccionada"
   (let ((canicas (get-balls casilla-actual))
         (movimiento nil))
     (format t "~& Canicas en casilla:  ~A ~%" canicas)
@@ -69,11 +79,13 @@
     (print-board)))
 
 (defun valid-human-slot? (casilla-actual)
+  "Predicado que checa las casillas validas que el jugador humano puede escoger"
   (cond ((member casilla-actual '(6 7 8 9 10 11 12 13)) nil)
         ((null (get-balls casilla-actual)) nil)
         (T T)))
 
 (defun human-turn()
+  "Funcion en la cual se ejecuta el turno humano"
   (let* ((casilla-actual nil)
          (mValido nil))
     (print-board)
@@ -97,11 +109,8 @@
                      *winner-player* 0
                      *shoot-again* nil))))))
 
-;///////////////////////////////////////////////////
-;Human Stuff
-;///////////////////////////////////////////////////
-
 (defun valid-operator? (operador estado)
+  "Predicado que valida si es el operador seleccionado es valido"
   (let ((operador (second operador)))
     (cond ((= operador 7)
            (if (null (nth 7 estado)) nil T))
@@ -118,6 +127,7 @@
           (T nil))))
 
 (defun apply-operator (operador estado)
+  "Funcion que aplica un operador de *ops* a un estado determinado"
   (let* ((ops (first operador))
          (casilla-actual (second operador))
          (canicas-casilla (get-balls casilla-actual))
@@ -132,69 +142,57 @@
       (T "Error"))
     estado-resultado))
 
-(defun move-machine-balls (tablero casillaActual canicasAux)
-  (let* ((canicaAux nil)
-         (contador 0)
+(defun copy-board (tablero)
+  "Funcion que crea una copia del tablero (por motivos de seguridad)"
+  (let ((estado-copia nil))
+  (loop for elemento in tablero do
+    (setq estado-copia (cons elemento estado-copia)))
+  (setq estado-copia  (reverse estado-copia))))
+
+(defun move-machine-balls (tablero casilla-actual canicas-casilla)
+  "Funcion que mueve las canicas de la IA"
+  (let* ((canica-a-meter nil)
+         (cont 0)
          (estado nil)
          (canicas nil)
-         (longitudParaTurno 0)
-         (contadorParaTurno 0)
-         (copiaTablero nil)
-         (canicaMayorEnBase -1)
-         (maquinaSeguirTirando nil)
-         (casillaAMeter (1+ casillaActual)))
+         (longitud-canicas 0)
+         (estado-copia nil)
+         (best-canca 0)
+         (shoot-again nil)
+         (casilla-target (1+ casilla-actual)))
 
-    ;Usamos funciones destructivas por lo que es recomendable trabajar con copias totalmente separadas de lo por
-    ; lo que estado es una copia de el estado actual de nuestro tablero
-    (setq estado (copy-list tablero))
+    (setq estado-copia (copy-board tablero))
 
-    ;Por seguridad y para que no guarde referencias a otras celdas de la lista, creamos una copia de los elementos
-    ; originales
-    (loop for elemento in tablero do
-         (setq copiaTablero (cons elemento copiaTablero)))
-    (setq copiaTablero  (reverse copiaTablero))
-    (loop for can in canicasAux do
+    (loop for can in canicas-casilla do
          (setq canicas (cons can canicas)))
 
-    ;Realizamos una resta para saber el numero de canicas que le vamos a dar al humano, quedandonos siempre
-    ; las de mejor valor asi como insertando la de mayor valor en nuestra base
     (setq canicas(sort canicas #'>))
-    (setq longitudParaTurno (length canicas))
-    (if ( >= (length canicas) (- 13 casillaActual))
+    (setq longitud-canicas (length canicas))
+    (if ( >= (length canicas) (- 13 casilla-actual))
         (progn
-          (setq canicaMayorEnBase (first canicas))
-          (push canicaMayorEnBase (nth 13 copiaTablero))
-                                        ;(setq seguirTirando T)
+          (setq best-canca (first canicas))
+          (push best-canca (nth 13 estado-copia))
           ))
 
-    (if ( > (length canicas) (- 13 casillaActual))
-        (setq maquinaSeguirTirando nil))
+    ;Si la longitud de tus canicas es igual a la canica en la que te encuentras, la IA vuelve a tirar
+     (if (= 0 (- (length canicas) (- 13 casilla-actual)))
+         (setq shoot-again T)
+         (setq shoot-again nil))
 
-     (if (= 0 (- (length canicas) (- 13 casillaActual)))
-         (setq maquinaSeguirTirando T))
-
-     (if (> 0 (- (length canicas) (- 13 casillaActual)))
-         (setq maquinaSeguirTirando nil))
-
-
-    ;Anteriormente ya hemos insertado la canica de mayor valor en nuestra base por lo que detectamos cuando
-    ; se repitela canica para no insertarla, asi como debemos reiniciar la cuenta para insertar las otras
-    ; canicas en la base enemiga
     (loop for canica in canicas do
-         (setq contadorParaTurno (1+ contadorParaTurno))
-         (setq canicaAux (pop (nth casillaActual copiaTablero)))
-         (if (and ( = contador 0 ) ( = canicaMayorEnBase canicaAux))
+         (setq canica-a-meter (pop (nth casilla-actual estado-copia)))
+         (if (and ( = cont 0 ) ( = best-canca canica-a-meter))
              (progn
-               (setq contador (1+ contador)))
+               (setq cont (1+ cont)))
              (progn
-               (if (> casillaAMeter 12)
-                   (setq casillaAMeter 0))
-               (push canicaAux (nth casillaAMeter copiaTablero))
-               (setq casillaAMeter (1+ casillaAMeter))))
-       ;  (setq contadorParaTurno (1+ contadorParaTurno))
-       finally (return (list copiaTablero maquinaSeguirTirando casillaActual)))))
+               (if (> casilla-target 12)
+                   (setq casilla-target 0))
+               (push canica-a-meter (nth casilla-target estado-copia))
+               (setq casilla-target (1+ casilla-target))))
+       finally (return (list estado-copia shoot-again casilla-actual)))))
 
 (defun heuristic-function (estado)
+  "Funcion de evaluación del estado la (BaseIA - BaseH)+(CanicasIA - CanicasH)"
   (let ((movimiento 0)
         (tablero (first estado)))
     (setq movimiento
@@ -203,17 +201,16 @@
                    (apply #'+ (nth 10 tablero))(apply #'+ (nth 11 tablero))(apply #'+ (nth 12 tablero)))
                 (+ (apply #'+ (nth 0 tablero))(apply #'+ (nth 1 tablero))(apply #'+ (nth 2 tablero))
                    (apply #'+ (nth 3 tablero))(apply #'+ (nth 4 tablero))(apply #'+ (nth 5 tablero))))))
-    (cond ((not (null (second estado)))
-           (setq movimiento -10000))
-          (T movimiento))
     movimiento))
 
 (defun change-player (jugador)
+  "Funcion la cual cambia de jugador, si es 0 --> 1 (le toca a la IA) y si es 1 --> 0 (le toca al humano)"
   (case jugador
     (0 1)
     (1 0)))
 
 (defun expand (estado)
+  "Funcion que aplica todos los operadores de *ops* a un estado determinado y los regresa en una lista"
   (let* ((sucesores nil)
          (nuevo-estado nil)
          (estado-copia (copy-list estado)))
@@ -224,46 +221,41 @@
                (push nuevo-estado sucesores)))
        finally (return sucesores))))
 
-(defun minimax-alpha-beta (tablero profundidad max-profundidad jugador alpha beta)
-  ;Si llegamos a la profundidad maxima retornamos la evaluacion de la heuristica
+(defun minimax (tablero profundidad max-profundidad jugador alpha beta)
+  "Funcion Minimax con Poda Alfa y Beta"
   (if (= profundidad max-profundidad)
       (heuristic-function  tablero)
-      ;Si aun no hemos llegado a la profundidad maxima continuamos
-      ;Primero recuperamos como sucesores la aplicacion de los operadores al tablero
       (let ((sucesores (expand tablero)))
-        ;Si ya no tenemos sucesores que analizar llamamos a la heuristica del Mancala
-        ; second de tablero es si puede volver a tirar la maquina o no
         (if (null sucesores)
             (heuristic-function tablero)
-            (do ((nuevoValor nil)
-                 (mejorMovimiento (car sucesores)))
-
+            (do ((nuevo-valor nil)
+                 (mejor-mov (first sucesores)))
                 ((null sucesores)
                  (if (= profundidad 0)
-                     mejorMovimiento
+                     mejor-mov
                      beta))
-
-              (setf nuevoValor
-                    (- (minimax-alpha-beta
-                        (car sucesores)
+              (setf nuevo-valor
+                    (- (minimax
+                        (first sucesores)
                         (1+ profundidad)
                         max-profundidad
                         (change-player jugador)
                         (- beta)
                         (- alpha))))
-              (when (> nuevoValor beta)
-                (setf beta nuevoValor)
-                (setf mejorMovimiento (car sucesores)))
+              (when (> nuevo-valor beta)
+                (setf beta nuevo-valor)
+                (setf mejor-mov (first sucesores)))
               (if (>= beta alpha)
                   (setf sucesores nil)
                   (setf sucesores (cdr sucesores))))))))
 
 (defun machine-turn ()
+  "Funcion en la cual se ejecuta el turno de la IA"
   (let ((movimiento nil)
         (movimiento-final nil)
         (shoot-again T))
     (loop until (null shoot-again) do
-         (setq movimiento (minimax *board* 0 1 1 *infinite* (- *infinite*)))
+         (setq movimiento (minimax *board* 0 1 1 *alfa* (- *alfa*)))
          (setq movimiento-final (first movimiento))
          (setq shoot-again (second movimiento))
          (format t "~& La casilla que escogio la IA fue ~A ~%" (third movimiento))
@@ -275,6 +267,7 @@
           (setq *shoot-again* nil)))))
 
 (defun play ()
+  "Funcion main"
   (reset-game)
   (loop until (not (null *end-game*)) do
        (game-ended?)
@@ -304,10 +297,4 @@
       (setq *human-points* (apply #'+ (nth 6 *board*))))
   (format t "~& Tu puntuación: ~A Puntuacion de la IA: ~A ~%" *human-points* *IA-points*))
 
-;(trace machine-turn)
-;(trace minimax)
-;(trace expand)
-;(trace apply-operator)
-;(trace move-machine-balls)
-;(trace heuristic-function)
 (play)
