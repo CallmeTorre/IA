@@ -16,6 +16,8 @@
 
 (defparameter *answer* nil)
 (defparameter *final-answer* nil)
+(defparameter *opertor* nil)
+(defparameter *value* nil)
 
 (defun reset-all ()
   (setq *answer* nil
@@ -34,6 +36,35 @@
         ((equal (first (first informacion)) clase) (second (first informacion)))
         (T (get-class clase (rest informacion)))))
 
+(defun conditional (expresion)
+  (let* ((exp (write-to-string expresion))
+         (len-exp (length exp))
+         (exp-igual nil)
+         (exp-sin-igual nil))
+
+    (if (equal (subseq exp 0 1) "[")
+        (setq exp-igual (subseq exp 0 3)
+              exp-sin-igual (subseq exp 0 2)))
+
+    (cond ((string-equal exp-igual '[>=)
+           (progn
+             (setq *opertor* #'>=
+                   *value* (parse-integer (subseq exp 3 (1- len-exp))))))
+          ((string-equal exp-igual '[<=)
+           (progn
+             (setq *opertor* #'<=
+                   *value* (parse-integer (subseq exp 3 (1- len-exp))))))
+          ((string-equal exp-sin-igual '[>)
+           (progn
+             (setq *opertor* #'>
+                   *value* (parse-integer (subseq exp 2 (1- len-exp))))))
+          ((string-equal exp-sin-igual '[<)
+           (progn
+             (setq *opertor* #'<
+                   *value* (parse-integer (subseq exp 2 (1- len-exp))))))
+          (T (setq *opertor* nil
+                   *value* nil)))))
+
 (defun get-info-existencial (inicio fin attr base-conocimiento)
   (loop for x from inicio to fin do
        (if (null attr)
@@ -43,13 +74,19 @@
                   (let ((clave (first (nth i (aref base-conocimiento x))))
                         (valor (rest (nth i (aref base-conocimiento x)))))
                     (loop for atributo in attr do
-                         (if (and (equal (first atributo) clave)(equal (rest atributo) valor))
-                             (push 1 *answer*)))
-                    (if (= (apply #'+ *answer*)(length attr))
-                        (push (aref base-conocimiento x) *final-answer*))
-                    (if (= (length attr) 1)
-                        (setq *answer* '(0)))))
-             (setq *answer* '(0))))))
+                         (conditional (rest atributo))
+                         (if (equal (first atributo) clave)
+                             (if (null *opertor*)
+                                 (if (equal (rest atributo) valor)
+                                     (push 1 *answer*))
+                                 (progn
+                                   (if (funcall *opertor* valor *value*)
+                                       (push 1 *answer*))))))))
+             (if (= (apply #'+ *answer*)(length attr))
+                 (push (aref base-conocimiento x) *final-answer*))
+             (setq *answer* nil
+                   *opertor* nil
+                   *value* nil)))))
 
 (defun get-info-universal (inicio fin attr base-conocimiento)
   (loop for x from inicio to fin do
@@ -60,13 +97,20 @@
                   (let ((clave (first (nth i (aref base-conocimiento x))))
                         (valor (rest (nth i (aref base-conocimiento x)))))
                     (loop for atributo in attr do
-                         (if (and (equal (first atributo) clave)(not (equal (rest atributo) valor)))
-                             (push 1 *answer*)))
-                    (if (= (apply #'+ *answer*)(length attr))
-                        (push (aref base-conocimiento x) *final-answer*))
-                    (if (= (length attr) 1)
-                        (setq *answer* '(0)))))
-             (setq *answer* '(0))))))
+                         (conditional (rest atributo))
+                         (if (equal (first atributo) clave)
+                             (if (null *opertor*)
+                                 (if (not (equal (rest atributo) valor))
+                                     (setq *answer* t))
+                                 (progn
+                                   (if (not (funcall *opertor* valor *value*))
+                                       (setq *answer* t)
+                                       (setq *answer* nil))))))))
+             (if (not (null *answer*))
+                 (push (aref base-conocimiento x) *final-answer*))
+             (setq *answer* nil
+                   *opertor* nil
+                   *value* nil)))))
 
 (defun search-engine (consulta)
   (let* ((operador (first consulta))
