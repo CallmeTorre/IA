@@ -36,10 +36,14 @@
         ((equal (first (first informacion)) clase) (second (first informacion)))
         (T (get-class clase (rest informacion)))))
 
+(defun notEqual (valor1 valor2)
+  (not (equal valor1 valor2)))
+
 (defun conditional (expresion)
   (let* ((exp (write-to-string expresion))
          (len-exp (length exp))
          (exp-igual nil)
+         (condicion-extra nil)
          (exp-sin-igual nil))
 
     (if (equal (subseq exp 0 1) "[")
@@ -50,6 +54,14 @@
            (progn
              (setq *opertor* #'>=
                    *value* (parse-integer (subseq exp 3 (1- len-exp))))))
+          ((string-equal exp-igual '[!=)
+           (setq *opertor*  #'notEqual)
+           (setq condicion-extra (read-from-string (subseq exp 3 (1- len-exp))))
+           (if (numberp condicion-extra)
+               (progn
+                 (setq *opertor* #'/=)
+                 (setq *value* (parse-integer (subseq exp 3 (1- len-exp)))))
+               (setq *value* (intern (subseq exp 3 (1- len-exp))))))
           ((string-equal exp-igual '[<=)
            (progn
              (setq *opertor* #'<=
@@ -119,7 +131,10 @@
          (valor-clase (rest clase))
          (posiciones-clase (get-class valor-clase *information*))
          (atributos (rest busqueda)))
-    (cond ((equal operador '+)
+    (if (null posiciones-clase)
+        (print "No existe la clase")
+        (progn
+          (cond ((equal operador '+)
            (progn
              (if (null atributos)
                  (progn
@@ -187,7 +202,7 @@
                        (progn
                          (print "True")
                          (print *final-answer*)))))))
-          (T "Operador Erroneo"))))
+          (T "Operador Erroneo"))))))
 
 (defun main ()
   (let ((consulta nil))
