@@ -2,7 +2,7 @@
 ;; Base de Conocimiento
 ;; *************************************
 ;;==== Número de tuplas de conocimiento===
-122
+129
 ;;========== Conocimiento ================
 ((clase . jugador)(nombre . Stephen-Curry)(numero . 30)(posicion . Guard))
 ((clase . jugador)(nombre . Kevin-Durant)(numero . 35)(posicion . Forward))
@@ -65,6 +65,13 @@
 ((clase . mascota)(nombre . Rumble-The-Bison))
 ((clase . mascota)(nombre . Clutch-The-Bear))
 ((clase . mascota)(nombre . Benny-The-Bull))
+((clase . equipo)(nombre . Warriors))
+((clase . equipo)(nombre . Cavaliers))
+((clase . equipo)(nombre . Spurs))
+((clase . equipo)(nombre . Lakers))
+((clase . equipo)(nombre . Thunder))
+((clase . equipo)(nombre . Rockets))
+((clase . equipo)(nombre . Bulls))
 ((clase . relacion)(etiqueta . Juega-En)(arg1 . Stephen-Curry)(arg2 . Warriors))
 ((clase . relacion)(etiqueta . Juega-En)(arg1 . Draymon-Green)(arg2 . Warriors))
 ((clase . relacion)(etiqueta . Juega-En)(arg1 . Kevin-Durant)(arg2 . Warriors))

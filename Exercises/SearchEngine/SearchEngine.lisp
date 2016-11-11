@@ -8,22 +8,18 @@
                                             :adjustable T
                                             :element-type 'list))
 
-(defparameter *information* '((jugador (0 41))
-                              (estadio (42 48))
-                              (entrenador (50 55))
-                              (mascota (56 60))
-                              (relacion (61 121))))
-
 (defparameter *answer* nil)
 (defparameter *final-answer* nil)
 (defparameter *opertor* nil)
 (defparameter *value* nil)
 
 (defun reset-all ()
+"Funcion que reinicia las variables globale spara las nuevas consultas"
   (setq *answer* nil
         *final-answer* nil))
 
 (defun read-knowledge (filename)
+"Funcion que permite obtener la información de la base de conocimientos"
   (with-open-file (stream filename)
     (let ((numrows (read stream)))
           (adjust-array *knowledge-vector* numrows)
@@ -31,15 +27,12 @@
           (dotimes (row numrows *knowledge-vector*)
             (setf (aref *knowledge-vector* row) (read stream nil nil))))))
 
-(defun get-class (clase informacion)
-  (cond ((null informacion) nil)
-        ((equal (first (first informacion)) clase) (second (first informacion)))
-        (T (get-class clase (rest informacion)))))
-
 (defun notEqual (valor1 valor2)
+"Funcion que imita el comportamiento de hacer un Not Equal"
   (not (equal valor1 valor2)))
 
 (defun conditional (expresion)
+"Funcion que permite saber si se esta usando reducción de terminos con los operadores lógicos básicos"
   (let* ((exp (write-to-string expresion))
          (len-exp (length exp))
          (exp-igual nil)
@@ -77,12 +70,10 @@
           (T (setq *opertor* nil
                    *value* nil)))))
 
-(defun get-info-existencial (inicio fin attr base-conocimiento)
-  (loop for x from inicio to fin do
-       (if (null attr)
-           (push (aref base-conocimiento x) *final-answer*)
-           (progn
-             (loop for i from 1 to (1- (length (aref base-conocimiento x))) do
+(defun get-info-existencial (attr base-conocimiento)
+"Funcion que realiza las consultas para el cuantificador existencial"
+  (loop for x from 0 to 128 do
+             (loop for i from 0 to (1- (length (aref base-conocimiento x))) do
                   (let ((clave (first (nth i (aref base-conocimiento x))))
                         (valor (rest (nth i (aref base-conocimiento x)))))
                     (loop for atributo in attr do
@@ -98,14 +89,12 @@
                  (push (aref base-conocimiento x) *final-answer*))
              (setq *answer* nil
                    *opertor* nil
-                   *value* nil)))))
+                   *value* nil)))
 
-(defun get-info-universal (inicio fin attr base-conocimiento)
-  (loop for x from inicio to fin do
-       (if (null attr)
-           (push (aref base-conocimiento x) *final-answer*)
-           (progn
-             (loop for i from 1 to (1- (length (aref base-conocimiento x))) do
+(defun get-info-universal (attr base-conocimiento)
+"Funcion que realiza las consultas para el cuantificador universal"
+  (loop for x from 0 to 128 do
+             (loop for i from 0 to (1- (length (aref base-conocimiento x))) do
                   (let ((clave (first (nth i (aref base-conocimiento x))))
                         (valor (rest (nth i (aref base-conocimiento x)))))
                     (loop for atributo in attr do
@@ -122,89 +111,44 @@
                  (push (aref base-conocimiento x) *final-answer*))
              (setq *answer* nil
                    *opertor* nil
-                   *value* nil)))))
+                   *value* nil)))
 
 (defun search-engine (consulta)
+"Funcion que recibe la consulta y determina que tipo de consulta esta realizando el usuario"
   (let* ((operador (first consulta))
-         (busqueda (rest consulta))
-         (clase (first busqueda))
-         (valor-clase (rest clase))
-         (posiciones-clase (get-class valor-clase *information*))
-         (atributos (rest busqueda)))
-    (if (null posiciones-clase)
-        (print "No existe la clase")
-        (progn
+         (busqueda (rest consulta)))
           (cond ((equal operador '+)
-           (progn
-             (if (null atributos)
-                 (progn
-                   (get-info-existencial (first posiciones-clase) (second posiciones-clase) nil *knowledge-vector*)
+                   (get-info-existencial busqueda *knowledge-vector*)
                    (if (null *final-answer*)
                        (print "False")
                        (progn
                          (print "True")
                          (print *final-answer*))))
-                 (progn
-                   (get-info-existencial (first posiciones-clase) (second posiciones-clase) atributos *knowledge-vector*)
-                   (if (null *final-answer*)
-                       (print "False")
-                       (progn
-                         (print "True")
-                         (print *final-answer*)))))))
           ((equal operador '-)
-           (progn
-             (if (null atributos)
-                 (progn
-                   (get-info-existencial (first posiciones-clase) (second posiciones-clase) nil *knowledge-vector*)
+                   (get-info-existencial busqueda *knowledge-vector*)
                    (if (null *final-answer*)
                        (print "True")
                        (progn
                          (print "False")
                          (print *final-answer*))))
-                 (progn
-                   (get-info-existencial (first posiciones-clase) (second posiciones-clase) atributos *knowledge-vector*)
-                   (if (null *final-answer*)
-                       (print "True")
-                       (progn
-                         (print "False")
-                         (print *final-answer*)))))))
           ((equal operador '*)
-           (progn
-             (if (null atributos)
-                 (progn
-                   (get-info-universal (first posiciones-clase) (second posiciones-clase) nil *knowledge-vector*)
+                   (get-info-universal busqueda  *knowledge-vector*)
                    (if (null *final-answer*)
                        (print "True")
                        (progn
                          (print "False")
                          (print *final-answer*))))
-                 (progn
-                   (get-info-universal (first posiciones-clase) (second posiciones-clase) atributos *knowledge-vector*)
-                   (if (null *final-answer*)
-                       (print "True")
-                       (progn
-                         (print "False")
-                         (print *final-answer*)))))))
           ((equal operador '/)
-           (progn
-             (if (null atributos)
-                 (progn
-                   (get-info-existencial (first posiciones-clase) (second posiciones-clase) nil *knowledge-vector*)
+                   (get-info-universal busqueda *knowledge-vector*)
                    (if (null *final-answer*)
                        (print "False")
                        (progn
                          (print "True")
                          (print *final-answer*))))
-                 (progn
-                   (get-info-existencial (first posiciones-clase) (second posiciones-clase) atributos *knowledge-vector*)
-                   (if (null *final-answer*)
-                       (print "False")
-                       (progn
-                         (print "True")
-                         (print *final-answer*)))))))
-          (T "Operador Erroneo"))))))
+          (T "Operador Erroneo"))))
 
 (defun main ()
+"Función Principal"
   (let ((consulta nil))
     (read-knowledge "BaseDeConocimiento.txt")
     (loop
