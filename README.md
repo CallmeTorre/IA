@@ -15,7 +15,7 @@ Por ultimo se encuentra la sección de PDFs en donde pueden consultar algunos li
 
 # Articulos
 En esta sección puedes encontrar algunos articulos que pueden ayudarte a aprender un poco más acerca de Common Lisp e Inteligencia Artificial.
-- [How to learn Lisp] (http://pchristensen.com/blog/articles/how-to-learn-lisp/)
+- [How to learn Lisp](http://pchristensen.com/blog/articles/how-to-learn-lisp/)
 - [Practical Common Lisp](http://www.gigamonkeys.com/book/)
 - [Learn X in Y minutes](https://learnxinyminutes.com/docs/common-lisp/)
 - [Stop Calling It Artificial Intelligence](http://www.joshworth.com/stop-calling-in-artificial-intelligence/)
